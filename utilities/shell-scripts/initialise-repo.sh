@@ -12,7 +12,7 @@ BASE_DIR=${WORKING_DIR}
 ##                      ______________________                        ##
 
 # The SSH or HTTPS URL to clone the modules repo
-MODULES_GIT_REPO_URL=
+MODULES_GIT_REPO_URL=git@github.com:diethardsteiner/pentaho-pdi-modules.git
 # **Note**: If this repo is not present yet, use this script 
 # to create it and push it to your Git Server (GitHub, etc).
 
