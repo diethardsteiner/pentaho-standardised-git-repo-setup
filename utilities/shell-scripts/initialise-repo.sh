@@ -34,6 +34,7 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "        pdi_module_repo"
     echo "        project_code"
     echo "        project_config"
+    echo "        standalone_project_config"
     echo "        common_code"
     echo "        common_config"
     echo "        project_docu"
@@ -89,8 +90,6 @@ while getopts ":a:p:e:s:" opt; do
           exit 1
         fi
     ;;
-    # u) MODULES_GIT_REPO_URL="$OPTARG"
-    # ;;
     \?) 
       echo "Invalid option -$OPTARG" >&2
       exit 1
@@ -101,6 +100,12 @@ done
 # Example Usage:
 # ./utilities/shell-scripts/initialise-repo.sh -a project_code -p mysampleproj -e dev 
 
+
+# Source required helper scripts
+
+source ./add-pdi-respository.sh
+
+# Main Script
 
 WORKING_DIR=`pwd`
 SHELL_DIR=$(dirname $0)
@@ -168,7 +173,7 @@ function pdi_module_repo {
 
 function project_code {
   # check if required parameter values are available
-  if [ -z ${ACTION} || -z ${PROJECT_NAME} || -z ${PDI_STORAGE_TYPE} ]; then
+  if [ -z ${ACTION} ] || [ -z ${PROJECT_NAME} ] || [ -z ${PDI_STORAGE_TYPE} ]; then
     echo "Not all required arguments were supplied. Required:"
     echo "-a <Action>"
     echo "-p <Project Name>"
@@ -198,6 +203,7 @@ function project_code {
     fi
     if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
       # nothing to do: shared.xml is part of .kettle, which lives in the config
+      echo ""
     fi
     echo "Adding pdi modules as a git submodule ..."
     git submodule add -b master ${MODULES_GIT_REPO_URL} modules
@@ -208,7 +214,7 @@ function project_code {
 
 function project_config {
   # check if required parameter values are available
-  if [ -z ${ACTION} || -z ${PROJECT_NAME} || -z ${PDI_ENV} || -z ${PDI_STORAGE_TYPE} ]; then
+  if [ -z ${ACTION} ] || [ -z ${PROJECT_NAME} ] || [ -z ${PDI_ENV} ] || [ -z ${PDI_STORAGE_TYPE} ]; then
     echo "Not all required arguments were supplied. Required:"
     echo "-a <Action>"
     echo "-p <Project Name>"
@@ -229,7 +235,6 @@ function project_config {
     git init .
     echo "Creating basic folder structure ..."
     mkdir shell-scripts properties
-    cd ${WORKING_DIR}
     echo "Adding essential shell files ..."
     cp ${SHELL_DIR}/artefacts/project-config/*.sh ${PROJECT_CONFIG_DIR}/shell-scripts
     mv ${PROJECT_CONFIG_DIR}/shell-scripts/run_jb_name.sh ${PROJECT_CONFIG_DIR}/shell-scripts/run_jb_${PROJECT_NAME}_master.sh
@@ -245,9 +250,14 @@ function project_config {
 
 function add_kettle_artefacts {
   echo "Adding .kettle files ..."
+  ## !!! THE PROBLEM IS HERE - have to pass directory path
   mkdir .kettle
   cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties .kettle
-  cp ${SHELL_DIR}/artefacts/pdi/.kettle/repositories.xml .kettle
+  # cp ${SHELL_DIR}/artefacts/pdi/.kettle/repositories.xml .kettle
+  add_pdi_repository \
+    -p ${PROJECT_NAME} \
+    -b ${BASE_DIR}/${PROJECT_NAME}-code/etl \
+    -b .kettle/repositories.xml
   if [ ${PDI_STORAGE_TYPE} = "files" ]; then
     cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
   fi
@@ -256,7 +266,7 @@ function add_kettle_artefacts {
 function standalone_project_config {
   # This caters for projects that do not need a common project or config
   # check if required parameter values are available
-  if [ -z ${ACTION} || -z ${PROJECT_NAME} || -z ${PDI_ENV} || -z ${PDI_STORAGE_TYPE} ]; then
+  if [ -z ${ACTION} ] || [ -z ${PROJECT_NAME} ] || [ -z ${PDI_ENV} ] || [ -z ${PDI_STORAGE_TYPE} ]; then
     echo "Not all required arguments were supplied. Required:"
     echo "-a <Action>"
     echo "-p <Project Name>"
@@ -265,7 +275,7 @@ function standalone_project_config {
     echo "exiting ..."
     exit 1
   fi
-  project-config
+  project_config
   echo "Adding essential shell files ..."
   cp ${SHELL_DIR}/artefacts/common-config/*.sh ${COMMON_CONFIG_DIR}/shell-scripts
   add_kettle_artefacts
@@ -294,7 +304,7 @@ function standalone_project_config {
 
 function common_config {
   # check if required parameter values are available
-  if [ -z ${ACTION} || -z ${PDI_ENV} || -z ${PDI_STORAGE_TYPE} ]; then
+  if [ -z ${ACTION} ] || [ -z ${PDI_ENV} ] || [ -z ${PDI_STORAGE_TYPE} ]; then
     echo "Not all required arguments were supplied. Required:"
     echo "-a <Action>"
     echo "-e <Environment>"
@@ -326,7 +336,7 @@ function common_config {
 
 function project_docu {
   # check if required parameter values are available
-  if [ -z ${ACTION} || -z ${PROJECT_NAME} ]; then
+  if [ -z ${ACTION} ] || [ -z ${PROJECT_NAME} ]; then
     echo "Not all required arguments were supplied. Required:"
     echo "-a <Action>"
     echo "-p <Project Name>"
@@ -396,6 +406,10 @@ fi
 
 if [ ${ACTION} = "project_config" ]; then
   project_config
+fi
+
+if [ ${ACTION} = "standalone_project_config" ]; then
+  standalone_project_config
 fi
 
 if [ ${ACTION} = "common_config" ]; then

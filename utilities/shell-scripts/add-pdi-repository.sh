@@ -1,9 +1,23 @@
 
-# Required parameters
-# Location of repository file
-PDI_REPOSITORY_FILE=
-PROJECT_NAME=
-BASE_DIR=
+function add_pdi_repository {
+  
+while getopts ":r:p:b:" opt; do
+  case $opt in
+    r) DI_REPOSITORY_FILE="$OPTARG"
+        echo "Submitted action value: ${DI_REPOSITORY_FILE}"
+    ;;
+    p) PROJECT_NAME="$OPTARG"
+        echo "Submitted project name value: ${PROJECT_NAME}"
+    ;;
+    b) PDI_REPO_BASE_DIR="$OPTARG"
+        echo "Submitted environment value: ${PDI_ENV}" 
+    ;;
+    \?) 
+      echo "Invalid option -$OPTARG" >&2
+      exit 1
+    ;;
+  esac
+done
 
 # if repositories.xml exists in common config folder already:
 #   check if repo is already defined
@@ -21,7 +35,7 @@ if [REPO_CHECK = "" ]; then
     <name>${PROJECT_NAME}</name>
     <description>${PROJECT_NAME}</description>
     <is_default>false</is_default>
-    <base_directory>${BASE_DIR}</base_directory>
+    <base_directory>${PDI_REPO_BASE_DIR}</base_directory>
     <read_only>N</read_only>
     <hides_hidden_files>N</hides_hidden_files>
   </repository>
@@ -38,10 +52,12 @@ cat > ${PDI_REPOSITORY_FILE} <<EOL
     <name>${PROJECT_NAME}</name>
     <description>${PROJECT_NAME}</description>
     <is_default>false</is_default>
-    <base_directory>${BASE_DIR}</base_directory>
+    <base_directory>${PDI_REPO_BASE_DIR}</base_directory>
     <read_only>N</read_only>
     <hides_hidden_files>N</hides_hidden_files>
   </repository>
 </repositories>
 EOL
 fi
+
+}
