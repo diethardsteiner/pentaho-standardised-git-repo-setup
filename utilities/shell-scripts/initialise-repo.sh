@@ -46,7 +46,7 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "                   Lower case, only letters allowed, no underscores, dashes etc"
     echo "                   Minimum of 3 to a maximum of 10 letters."
     echo "-s  STORAGE TYPE:  Which type of PDI storage type to use."
-    echo "                   Possible values: files, file-repo, ee-repo. Not supported yet: db-repo"
+    echo "                   Possible values: files, file-repo. Not supported: db-repo, ee-repo"
     echo "exiting ..."
     exit 1
 fi
@@ -76,11 +76,11 @@ while getopts ":a:p:e:s:" opt; do
           exit 1
         fi
     ;;
-    s) STORAGE_TYPE="$OPTARG"
-        echo "Submitted environment value: ${STORAGE_TYPE}" 
+    s) PDI_STORAGE_TYPE="$OPTARG"
+        echo "Submitted environment value: ${PDI_STORAGE_TYPE}" 
         # check that supplied value is in the list of possible values
-        # validate() { echo "files file-repo ee-repo" | grep -F -q -w "${STORAGE_TYPE}"; }
-        LIST_CHECK=$(echo "files file-repo ee-repo" | grep -F -q -w "${STORAGE_TYPE}" && echo "valid" || echo "invalid")
+        # validate() { echo "files file-repo ee-repo" | grep -F -q -w "${PDI_STORAGE_TYPE}"; }
+        LIST_CHECK=$(echo "files file-repo ee-repo" | grep -F -q -w "${PDI_STORAGE_TYPE}" && echo "valid" || echo "invalid")
         echo "List check: ${LIST_CHECK}"
         if [ ${LIST_CHECK} = "invalid" ]; then
           echo "Unsupported storage type!"
@@ -108,6 +108,13 @@ echo "BASE_DIR: " ${BASE_DIR}
 
 
 function pdi_module {
+  # check if required parameter values are available
+  if [ -z ${ACTION} ]; then
+    echo "Not all required arguments were supplied. Required:"
+    echo "-a <Action>"
+    echo "exiting ..."
+    exit 1
+  fi
   echo "================PDI MODULES===================="
   PDI_MODULES_DIR=${BASE_DIR}/modules
   echo "PDI_MODULES_DIR: ${PDI_MODULES_DIR}" 
@@ -128,6 +135,13 @@ function pdi_module {
 }
 
 function pdi_module_repo {
+  # check if required parameter values are available
+  if [ -z ${ACTION} ]; then
+    echo "Not all required arguments were supplied. Required:"
+    echo "-a <Action>"
+    echo "exiting ..."
+    exit 1
+  fi
   echo "================PDI MODULES REPO===================="
   PDI_MODULES_REPO_DIR=${BASE_DIR}/modules-pdi-repo
   echo "PDI_MODULES_REPO_DIR: ${PDI_MODULES_REPO_DIR}"
@@ -148,7 +162,15 @@ function pdi_module_repo {
 }
 
 function project_code {
-  # [OPEN] we need a version for the non-repo based setup
+  # check if required parameter values are available
+  if [ -z ${ACTION} || -z ${PROJECT_NAME} || -z ${PDI_STORAGE_TYPE} ]; then
+    echo "Not all required arguments were supplied. Required:"
+    echo "-a <Action>"
+    echo "-p <Project Name>"
+    echo "-s <PDI Storage Type>"
+    echo "exiting ..."
+    exit 1
+  fi
   echo "================PROJECT CODE===================="
   PROJECT_CODE_DIR=${BASE_DIR}/${PROJECT_NAME}
   echo "PROJECT_CODE_DIR: ${PROJECT_CODE_DIR}"
@@ -165,8 +187,13 @@ function project_code {
     mkdir etl mdx mondrian-schemas pentaho-solutions sql
     echo "Creating basic README file ..."
     echo "Documentation can be found in the dedicated documentation Git repo called ${PROJECT_NAME}-documentation" > README.md
-    echo "Adding kettle db connection files ..."
-    cp -r ${SHELL_DIR}/artefacts/pdi/repo/*.kdb etl
+    if [ ${PDI_STORAGE_TYPE} = "file-repo" ]; then
+      echo "Adding kettle db connection files ..."
+      cp -r ${SHELL_DIR}/artefacts/pdi/repo/*.kdb etl
+    fi
+    if [ ${PDI_STORAGE_TYPE} = "files" ]; then
+      # nothing to do: shared.xml is part of .kettle, which lives in the config
+    fi
     echo "Adding pdi modules as a git submodule ..."
     git submodule add -b master ${MODULES_GIT_REPO_URL} modules
     git submodule init
@@ -175,6 +202,16 @@ function project_code {
 }
 
 function project_config {
+  # check if required parameter values are available
+  if [ -z ${ACTION} || -z ${PROJECT_NAME} || -z ${PDI_ENV} || -z ${PDI_STORAGE_TYPE} ]; then
+    echo "Not all required arguments were supplied. Required:"
+    echo "-a <Action>"
+    echo "-p <Project Name>"
+    echo "-e <Environment>"
+    echo "-s <PDI Storage Type>"
+    echo "exiting ..."
+    exit 1
+  fi
   echo "================PROJECT CONFIG=================="
   PROJECT_CONFIG_DIR=${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}
   echo "PROJECT_CONFIG_DIR: ${PROJECT_CONFIG_DIR}"
@@ -200,10 +237,33 @@ function project_config {
   fi
 }
 
+
+function add_kettle_artefacts {
+  echo "Adding .kettle files ..."
+  mkdir .kettle
+  cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties .kettle
+  cp ${SHELL_DIR}/artefacts/pdi/.kettle/repositories.xml .kettle
+  if [ ${PDI_STORAGE_TYPE} = "files" ]; then
+    cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
+  fi
+}
+
 function standalone_project_config {
+  # This caters for projects that do not need a common project or config
+  # check if required parameter values are available
+  if [ -z ${ACTION} || -z ${PROJECT_NAME} || -z ${PDI_ENV} || -z ${PDI_STORAGE_TYPE} ]; then
+    echo "Not all required arguments were supplied. Required:"
+    echo "-a <Action>"
+    echo "-p <Project Name>"
+    echo "-e <Environment>"
+    echo "-s <PDI Storage Type>"
+    echo "exiting ..."
+    exit 1
+  fi
   project-config
   echo "Adding essential shell files ..."
   cp ${SHELL_DIR}/artefacts/common-config/*.sh ${COMMON_CONFIG_DIR}/shell-scripts
+  add_kettle_artefacts
   # [OPEN] wrapper.sh has to be adjusted for standalone projects
 }
 
@@ -228,6 +288,15 @@ function standalone_project_config {
 # }
 
 function common_config {
+  # check if required parameter values are available
+  if [ -z ${ACTION} || -z ${PDI_ENV} || -z ${PDI_STORAGE_TYPE} ]; then
+    echo "Not all required arguments were supplied. Required:"
+    echo "-a <Action>"
+    echo "-e <Environment>"
+    echo "-s <PDI Storage Type>"
+    echo "exiting ..."
+    exit 1
+  fi
   echo "==========COMMON CONFIG=================="
   COMMON_CONFIG_DIR=${BASE_DIR}/common-config-${PDI_ENV}
   echo "COMMON_CONFIG_DIR: ${COMMON_CONFIG_DIR}"
@@ -240,8 +309,7 @@ function common_config {
     mkdir shell-scripts
     echo "Initialising Git Repo ..."
     git init .
-    echo "Adding .kettle folder ..."
-    cp -r ${SHELL_DIR}/artefacts/pdi/.kettle .
+    add_kettle_artefacts
     # [OPEN] repository.xml template has to be populated with real values
     echo "Adding essential shell files ..."
     cp ${SHELL_DIR}/artefacts/common-config/*.sh ${COMMON_CONFIG_DIR}/shell-scripts
@@ -252,6 +320,14 @@ function common_config {
 
 
 function project_docu {
+  # check if required parameter values are available
+  if [ -z ${ACTION} || -z ${PROJECT_NAME} ]; then
+    echo "Not all required arguments were supplied. Required:"
+    echo "-a <Action>"
+    echo "-p <Project Name>"
+    echo "exiting ..."
+    exit 1
+  fi
   echo "===========PROJECT DOCUMENTATION=================="
   PROJECT_DOCU_DIR=${BASE_DIR}/${PROJECT_NAME}-documentation
   echo "PROJECT_DOCU_DIR: ${PROJECT_DOCU_DIR}"
@@ -268,6 +344,13 @@ function project_docu {
 }
 
 function common_docu {
+  # check if required parameter values are available
+  if [ -z ${ACTION} ]; then
+    echo "Not all required arguments were supplied. Required:"
+    echo "-a <Action>"
+    echo "exiting ..."
+    exit 1
+  fi
   echo "===========COMMON DOCUMENTATION=================="
   COMMON_DOCU_DIR=${BASE_DIR}/common-documentation
   echo "COMMON_DOCU_DIR: ${COMMON_DOCU_DIR}"
