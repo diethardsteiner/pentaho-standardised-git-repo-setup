@@ -18,84 +18,75 @@ MODULES_GIT_REPO_URL=git@github.com:diethardsteiner/pentaho-pdi-modules.git
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
 
-
-echo "=============="
-echo "SHELL DIR: " ${SHELL_DIR}
-echo "BASE_DIR: " ${BASE_DIR}
-
-
-## Ask for required parameters
-# if [ $# -eq 0 ] || [ -z "$1" ] #|| [ -z "$2" ] || [ -z "$3" ]
-#   then
-#     echo "ERROR: Not all mandatory arguments supplied, please supply environment and/or job arguments"
-#     echo
-#     echo "Usage: initialise-code-repo.sh [PROJECT NAME] [ENVIRONMENT NAME] [BASE DIRECTORY]"
-#     echo "Creates a basic folder structure for a code repository"
-#     echo 
-#     echo "Mandatory arguments"
-#     echo
-#     echo "ACTION: Choose number"
-#     echo " (1) Project Repo with Common Config and Modules"
-#     echo "  pdi-module"
-#     echo "  pdi-module-repo"
-#     echo "  project-code"
-#     echo "  project-config"
-#     echo "  common-code"
-#     echo "  common-config"
-#     echo "  project-docu"
-#     echo "  common-docu"
-#     echo " "
-#     echo "ENVIRONMENT NAME: The name of the environment (e.g. dev, test, ...)"
-#     echo "PROJECT NAME:     The name of the project"
-#     echo "exiting ..."
-#     exit 1
-#   else
-#     # project name
-#     PROJECT_NAME="$3"
-#     echo "PROJECT NAME: ${PROJECT_NAME}"
-#     # environment name
-#     PDI_ENV="$3"
-#     echo "ENV: ${PDI_ENV}"
-#     # base directory
-#     ACTION="$1"
-#     echo "ACTION: " ${ACTION}
-#     BASE_DIR=${WORKING_DIR}
-#     echo "BASE DIRECTORY: ${BASE_DIR}"
-# fi
-
 if [ $# -eq 0 ] || [ -z "$1" ]
   then
     echo "ERROR: Not all mandatory arguments supplied, please supply environment and/or job arguments"
     echo
-    echo "Usage: initialise-code-repo.sh ..."
+    echo "Usage: initialise-repo.sh ..."
     echo "Creates a basic folder structure for a code repository"
     echo 
     echo "Mandatory arguments"
     echo
     echo "-a   ACTION: Choose number"
     echo "        (1) Project Repo with Common Config and Modules"
-    echo "        pdi-module"
-    echo "        pdi-module-repo"
-    echo "        project-code"
-    echo "        project-config"
-    echo "        common-code"
-    echo "        common-config"
-    echo "        project-docu"
-    echo "        common-docu"
+    echo "        pdi_module"
+    echo "        pdi_module_repo"
+    echo "        project_code"
+    echo "        project_config"
+    echo "        common_code"
+    echo "        common_config"
+    echo "        project_docu"
+    echo "        common_docu"
+    echo " "
+    echo "Optional arguments:"
+    echo " "
+    echo "-p  PROJECT NAME:  Lower case, only letters allowed, no underscores, dashes etc."
+    echo "                   Minimum of 3 to a maximum of 20 letters."
+    echo "-e  ENVIRONMENT:   Name of the environment: dev, test, prod or similiar. "
+    echo "                   Lower case, only letters allowed, no underscores, dashes etc"
+    echo "                   Minimum of 3 to a maximum of 10 letters."
+    echo "-s  STORAGE TYPE:  Which type of PDI storage type to use."
+    echo "                   Possible values: files, file-repo, ee-repo. Not supported yet: db-repo"
     echo "exiting ..."
     exit 1
 fi
 
 
 # while getopts ":a:p:d:u:" opt; do
-while getopts ":a:p:d:" opt; do
+while getopts ":a:p:e:s:" opt; do
   case $opt in
     a) ACTION="$OPTARG"
+        echo "Submitted action value: ${ACTION}"
     ;;
     p) PROJECT_NAME="$OPTARG"
-    # [OPEN] Check that project name has letters only, no dashes etc!
+        echo "Submitted project name value: ${PROJECT_NAME}"
+        if [[ ! ${PROJECT_NAME} =~ ^[a-z]{3,20}$ ]]; then
+          echo "Unsupported project name!"
+          echo "Lower case, only letters allowed, no underscores, dashes, spaces etc."
+          echo "Minimum of 3 to a maximum of 20 letters."
+          exit 1
+        fi
     ;;
     e) PDI_ENV="$OPTARG"
+        echo "Submitted environment value: ${PDI_ENV}" 
+        if [[ ! ${PDI_ENV} =~ ^[a-z]{3,10}$ ]]; then
+          echo "Unsupported environment name!"
+          echo "Lower case, only letters allowed, no underscores, dashes, spaces etc."
+          echo "Minimum of 3 to a maximum of 10 letters."
+          exit 1
+        fi
+    ;;
+    s) STORAGE_TYPE="$OPTARG"
+        echo "Submitted environment value: ${STORAGE_TYPE}" 
+        # check that supplied value is in the list of possible values
+        # validate() { echo "files file-repo ee-repo" | grep -F -q -w "${STORAGE_TYPE}"; }
+        LIST_CHECK=$(echo "files file-repo ee-repo" | grep -F -q -w "${STORAGE_TYPE}" && echo "valid" || echo "invalid")
+        echo "List check: ${LIST_CHECK}"
+        if [ ${LIST_CHECK} = "invalid" ]; then
+          echo "Unsupported storage type!"
+          echo "Possible values: files, file-repo, ee-repo"
+          exit 1
+        fi
     ;;
     # u) MODULES_GIT_REPO_URL="$OPTARG"
     # ;;
@@ -107,10 +98,16 @@ while getopts ":a:p:d:" opt; do
 done
 
 # Example Usage:
-# ./utilities/shell-scripts/initialise-repo.sh -a"pdi-module-repo"
+# ./utilities/shell-scripts/initialise-repo.sh -a project_code -p mysampleproj -e dev 
 
 
-function pdi-module {
+echo "=============="
+echo "SHELL DIR: " ${SHELL_DIR}
+echo "BASE_DIR: " ${BASE_DIR}
+
+
+
+function pdi_module {
   echo "================PDI MODULES===================="
   PDI_MODULES_DIR=${BASE_DIR}/modules
   echo "PDI_MODULES_DIR: ${PDI_MODULES_DIR}" 
@@ -130,7 +127,7 @@ function pdi-module {
   fi
 }
 
-function pdi-module-repo {
+function pdi_module_repo {
   echo "================PDI MODULES REPO===================="
   PDI_MODULES_REPO_DIR=${BASE_DIR}/modules-pdi-repo
   echo "PDI_MODULES_REPO_DIR: ${PDI_MODULES_REPO_DIR}"
@@ -150,7 +147,7 @@ function pdi-module-repo {
   fi 
 }
 
-function project-code {
+function project_code {
   # [OPEN] we need a version for the non-repo based setup
   echo "================PROJECT CODE===================="
   PROJECT_CODE_DIR=${BASE_DIR}/${PROJECT_NAME}
@@ -177,7 +174,7 @@ function project-code {
   fi
 }
 
-function project-config {
+function project_config {
   echo "================PROJECT CONFIG=================="
   PROJECT_CONFIG_DIR=${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}
   echo "PROJECT_CONFIG_DIR: ${PROJECT_CONFIG_DIR}"
@@ -203,8 +200,8 @@ function project-config {
   fi
 }
 
-function standalone-project-config {
-  project-config()
+function standalone_project_config {
+  project-config
   echo "Adding essential shell files ..."
   cp ${SHELL_DIR}/artefacts/common-config/*.sh ${COMMON_CONFIG_DIR}/shell-scripts
   # [OPEN] wrapper.sh has to be adjusted for standalone projects
@@ -230,7 +227,7 @@ function standalone-project-config {
 #   fi
 # }
 
-function common-config {
+function common_config {
   echo "==========COMMON CONFIG=================="
   COMMON_CONFIG_DIR=${BASE_DIR}/common-config-${PDI_ENV}
   echo "COMMON_CONFIG_DIR: ${COMMON_CONFIG_DIR}"
@@ -254,7 +251,7 @@ function common-config {
 }
 
 
-function project-docu {
+function project_docu {
   echo "===========PROJECT DOCUMENTATION=================="
   PROJECT_DOCU_DIR=${BASE_DIR}/${PROJECT_NAME}-documentation
   echo "PROJECT_DOCU_DIR: ${PROJECT_DOCU_DIR}"
@@ -270,7 +267,7 @@ function project-docu {
   fi
 }
 
-function common-docu {
+function common_docu {
   echo "===========COMMON DOCUMENTATION=================="
   COMMON_DOCU_DIR=${BASE_DIR}/common-documentation
   echo "COMMON_DOCU_DIR: ${COMMON_DOCU_DIR}"
@@ -290,39 +287,37 @@ function common-docu {
 
 if [ ${ACTION} = "1" ]; then 
   ## [OPEN] check all required parameters are available!!!
-  pdi-module
-  pdi-module-repo
-  project-code
-  project-config
-  common-config
-  common-docu
-  project-docu
+  project_code
+  project_config
+  common_config
+  common_docu
+  project_docu
 fi
 
-if [ ${ACTION} = "pdi-module" ]; then 
-  pdi-module
+if [ ${ACTION} = "pdi_module" ]; then 
+  pdi_module
 fi
 
-if [ ${ACTION} = "pdi-module-repo" ]; then
-  pdi-module-repo
+if [ ${ACTION} = "pdi_module_repo" ]; then
+  pdi_module_repo
 fi
 
-if [ ${ACTION} = "project-code" ]; then
-  project-code
+if [ ${ACTION} = "project_code" ]; then
+  project_code
 fi
 
-if [ ${ACTION} = "project-config" ]; then
-  project-config
+if [ ${ACTION} = "project_config" ]; then
+  project_config
 fi
 
-if [ ${ACTION} = "common-config" ]; then
-  common-config
+if [ ${ACTION} = "common_config" ]; then
+  common_config
 fi
 
-if [ ${ACTION} = "project-docu" ]; then
-  project-docu
+if [ ${ACTION} = "project_docu" ]; then
+  project_docu
 fi
 
-if [ ${ACTION} = "common-docu" ]; then
-  common-docu
+if [ ${ACTION} = "common_docu" ]; then
+  common_docu
 fi
