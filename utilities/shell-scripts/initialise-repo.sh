@@ -1,10 +1,5 @@
 #!/bin/bash
 
-WORKING_DIR=`pwd`
-SHELL_DIR=$(dirname $0)
-BASE_DIR=${WORKING_DIR}
-
-
 
 # ========== ORGANISATION SPECFIC CONFIGURATION PROPERTIES =========== #
 
@@ -17,6 +12,12 @@ MODULES_GIT_REPO_URL=git@github.com:diethardsteiner/pentaho-pdi-modules.git
 # to create it and push it to your Git Server (GitHub, etc).
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~ DO NOT CHANGE ~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+##                      ______________________                        ##
+
 
 if [ $# -eq 0 ] || [ -z "$1" ]
   then
@@ -46,7 +47,7 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "                   Lower case, only letters allowed, no underscores, dashes etc"
     echo "                   Minimum of 3 to a maximum of 10 letters."
     echo "-s  STORAGE TYPE:  Which type of PDI storage type to use."
-    echo "                   Possible values: files, file-repo. Not supported: db-repo, ee-repo"
+    echo "                   Possible values: file-based, file-repo. Not supported: db-repo, ee-repo"
     echo "exiting ..."
     exit 1
 fi
@@ -80,11 +81,11 @@ while getopts ":a:p:e:s:" opt; do
         echo "Submitted environment value: ${PDI_STORAGE_TYPE}" 
         # check that supplied value is in the list of possible values
         # validate() { echo "files file-repo ee-repo" | grep -F -q -w "${PDI_STORAGE_TYPE}"; }
-        LIST_CHECK=$(echo "files file-repo ee-repo" | grep -F -q -w "${PDI_STORAGE_TYPE}" && echo "valid" || echo "invalid")
+        LIST_CHECK=$(echo "file-based file-repo ee-repo" | grep -F -q -w "${PDI_STORAGE_TYPE}" && echo "valid" || echo "invalid")
         echo "List check: ${LIST_CHECK}"
         if [ ${LIST_CHECK} = "invalid" ]; then
           echo "Unsupported storage type!"
-          echo "Possible values: files, file-repo, ee-repo"
+          echo "Possible values: file-based, file-repo, ee-repo"
           exit 1
         fi
     ;;
@@ -100,6 +101,10 @@ done
 # Example Usage:
 # ./utilities/shell-scripts/initialise-repo.sh -a project_code -p mysampleproj -e dev 
 
+
+WORKING_DIR=`pwd`
+SHELL_DIR=$(dirname $0)
+BASE_DIR=${WORKING_DIR}
 
 echo "=============="
 echo "SHELL DIR: " ${SHELL_DIR}
@@ -191,7 +196,7 @@ function project_code {
       echo "Adding kettle db connection files ..."
       cp -r ${SHELL_DIR}/artefacts/pdi/repo/*.kdb etl
     fi
-    if [ ${PDI_STORAGE_TYPE} = "files" ]; then
+    if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
       # nothing to do: shared.xml is part of .kettle, which lives in the config
     fi
     echo "Adding pdi modules as a git submodule ..."

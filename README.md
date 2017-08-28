@@ -11,7 +11,6 @@ You have to change the following in the utilities folder:
 
 > **Note**: If this repo is not present yet, use the `shell-scripts/initialise-repo.sh` to create it and push it to your Git Server (GitHub, etc). Then adjust the configuration.
 
-- `shell-scripts/project-config/wrapper.sh`: There are only changes required in the `PROJECT-SPECIFIC CONFIGURATION PROPERTIES` section.
 
 ## Initialise Project Structure
 
@@ -37,8 +36,9 @@ The `initialise-repo.sh` script expects following **arguments**:
 
 > **Important**: The project name must only include letters, no other characters. The same applies to the environment name.
 
-
 > **Important**: All the repositories have to be located within the same folder. This folder is referred to as `BASE_DIR`.
+
+> **Note**: If any of these repositories already exist within the same folder, they will not be overwritten.
 
 ## Example
 
@@ -148,19 +148,21 @@ This will create the following structure:
 
 Once this is in place, you have to change the following:
 
-- `common-config-<env>/.kettle/kettle.properties`
-- `common-config-<env>/.kettle/repositories.xml` (only when using repo storage mode): Set the path to the PDI repository of your project (located in `myproject/etl`)
+- `common-config-<env>/.kettle/repositories.xml` (only when using repo storage mode): Set the path to the PDI repository of your project (located in `myproject/etl`) as well as provide a name and description for the PDI repository.
 - `common-config-<env>/shell-scripts/set_env_variables.sh`
-- `myproject-config-<env>/shell-scripts/wrapper.sh`
+- `myproject-config-<env>/shell-scripts/wrapper.sh`: There are only changes required in the `PROJECT-SPECIFIC CONFIGURATION PROPERTIES` section.
 
 If you are setting this up on your local workstation, you should be able to start Spoon now and connect to the PDI repository. You have to run this first before opening Spoon from the same terminal session (adjust as required):
 
 ```bash
-common-config-<env>/shell-scripts/set_env_variables.sh
+source common-config-<env>/shell-scripts/set_env_variables.sh
 ```
 
 As the next step you might want to adjust:
 
+- `common-config-<env>/.kettle/kettle.properties`
 - `common-config-<env>/.kettle/shared.xml` (only when using file-based storage mode)
 - `myproject-config-<env>/properties/myproject.properties`
 - `myproject-config-<env>/properties/jb_myproject_master.properties`
+
+Don't forget to commit all these changes. You will also have to set the Git remote for these repositories.
