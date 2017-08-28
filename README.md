@@ -1,0 +1,1 @@
+# pentaho-standardised-git-repo-setup
