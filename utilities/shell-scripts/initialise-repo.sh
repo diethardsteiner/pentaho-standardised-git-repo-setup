@@ -182,7 +182,7 @@ function project_code {
     exit 1
   fi
   echo "================PROJECT CODE===================="
-  PROJECT_CODE_DIR=${BASE_DIR}/${PROJECT_NAME}
+  PROJECT_CODE_DIR=${BASE_DIR}/${PROJECT_NAME}-code
   echo "PROJECT_CODE_DIR: ${PROJECT_CODE_DIR}"
   if [ ! -d "${PROJECT_CODE_DIR}" ]; then
     echo "Creating project code folder ..."
