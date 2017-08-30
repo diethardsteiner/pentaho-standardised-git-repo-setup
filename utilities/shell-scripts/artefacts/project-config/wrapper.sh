@@ -50,6 +50,11 @@ PDI_ENV=${PROJECT_GIT_FOLDER##*-}
 BASE_DIR=${PROJECT_GIT_DIR}/..
 # Path to the environment specific common configuration
 COMMON_CONFIG_HOME="${BASE_DIR}/common-config-${PDI-ENV}"
+# workaround so that we can handle standalone projects as well
+if [ ! -d ${COMMON_CONFIG_HOME} ]; then 
+  echo "No common config exists, so assuming it is a standalone project ..."
+  COMMON_CONFIG_HOME="${BASE_DIR}/${PROJECT_NAME}-config-${PDI-ENV}"
+fi
 # source common environment variables here so that they can be used straight away for project specifc variables
 source ${COMMON_CONFIG_HOME}/shell-scripts/set_env_variables.sh
 # Absolute path for home directory of project properties files
