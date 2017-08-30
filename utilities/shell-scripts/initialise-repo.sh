@@ -191,6 +191,11 @@ function project_code {
     cd ${PROJECT_CODE_DIR}
     echo "Initialising Git Repo ..."
     git init .
+    echo "Creating essential branches ..."
+    git branch dev
+    # not creating feature or release branches since there can be many of them
+    echo "Pointing to default git branch"
+    git checkout dev
     echo "Creating Git Branch ${PDI_ENV} ..."
     git checkout -b ${PDI_ENV}
     echo "Creating basic folder structure ..."
