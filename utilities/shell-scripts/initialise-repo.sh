@@ -30,6 +30,7 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo
     echo "-a   ACTION: Choose number"
     echo "        (1) Project Repo with Common Config and Modules"
+    echo "        (2) Standalone Project and Config (No Common Artefacts)"
     echo "        pdi_module"
     echo "        pdi_module_repo"
     echo "        project_code"
@@ -115,22 +116,11 @@ echo "BASE_DIR: " ${BASE_DIR}
 #source ${SHELL_DIR}/add-pdi-respository.sh
 function add_pdi_repository {
   
-  while getopts ":r:p:b:" opt; do
-    case $opt in
-      r) DI_REPOSITORY_FILE="$OPTARG"
-      ;;
-      p) PROJECT_NAME="$OPTARG"
-      ;;
-      b) PDI_REPO_BASE_DIR="$OPTARG"    
-      ;;
-      \?) 
-        echo "Invalid option -$OPTARG" >&2
-        exit 1
-      ;;
-    esac
-  done
+  PDI_REPOSITORY_FILE=$1
+  PDI_REPO_BASE_DIR=$2
+
   
-  echo "Submitted repository file path value: ${DI_REPOSITORY_FILE}"
+  echo "Submitted repository file path value: ${PDI_REPOSITORY_FILE}"
   echo "Submitted project name value: ${PROJECT_NAME}"
   echo "Submitted pdi repo base dir value: ${PDI_REPO_BASE_DIR}" 
 
@@ -141,6 +131,7 @@ function add_pdi_repository {
   # sublime has some syntax highlighting issues if EOL is indented, so not indenting here
   REPO_CHECK=$(grep "<name>${PROJECT_NAME}</name>"  ${PDI_REPOSITORY_FILE})
   if [REPO_CHECK = "" ]; then
+    echo "Adding repository reference to existing repository registry ..."
     # remove existing repositories end tag
     perl -0777 -pe 's@</repositories>@@igs' -i ${PDI_REPOSITORY_FILE}
     # add new repository details and new repositories end tag
@@ -157,8 +148,12 @@ function add_pdi_repository {
 </repositories>
 EOL
 else
+  echo "Project already part of the repository registry. Nothing to do ... moving on ..."
+fi
+else
 # if not:
 #   add the whole file
+echo "Adding new repository registry ..."
 cat > ${PDI_REPOSITORY_FILE} <<EOL
 <?xml version="1.0" encoding="UTF-8"?>
 <repositories>
@@ -173,7 +168,6 @@ cat > ${PDI_REPOSITORY_FILE} <<EOL
   </repository>
 </repositories>
 EOL
-fi
 fi
 }
 
@@ -333,12 +327,17 @@ function standalone_project_config {
   cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties .kettle
   # cp ${SHELL_DIR}/artefacts/pdi/.kettle/repositories.xml .kettle
   add_pdi_repository \
-    -p ${PROJECT_NAME} \
-    -r "${BASE_DIR}/${PROJECT_NAME}-code/etl" \
-    -b "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/.kettle/repositories.xml"
+    "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/.kettle/repositories.xml" \
+    "${BASE_DIR}/${PROJECT_NAME}-code/etl"
   if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
     cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
   fi
+
+  echo ""
+  echo "IMPORTANT:"
+  echo "Amend the following configuration file:"
+  echo "${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
+  echo ""
 }
 
 # retired since we use modules now
@@ -389,9 +388,8 @@ function common_config {
     cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties .kettle
     # cp ${SHELL_DIR}/artefacts/pdi/.kettle/repositories.xml .kettle
     add_pdi_repository \
-      -p ${PROJECT_NAME} \
-      -r "${BASE_DIR}/${PROJECT_NAME}-code/etl" \
-      -b "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/.kettle/repositories.xml"
+      "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/.kettle/repositories.xml" \
+      "${BASE_DIR}/${PROJECT_NAME}-code/etl"
     if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
       cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
     fi
@@ -400,6 +398,12 @@ function common_config {
     cp ${SHELL_DIR}/artefacts/common-config/*.sh ${COMMON_CONFIG_DIR}/shell-scripts
     echo "Creating basic README file ..."
     echo "Common configuration for ${PDI_ENV} environment." > ${COMMON_CONFIG_DIR}/README.md
+
+    echo ""
+    echo "IMPORTANT:"
+    echo "Amend the following configuration file:"
+    echo "${COMMON_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
+    echo ""
   fi
 }
 
@@ -454,11 +458,16 @@ function common_docu {
 
 
 if [ ${ACTION} = "1" ]; then 
-  ## [OPEN] check all required parameters are available!!!
   project_code
   project_config
   common_config
   common_docu
+  project_docu
+fi
+
+if [ ${ACTION} = "2" ]; then 
+  project_code
+  standalone_project_config
   project_docu
 fi
 
