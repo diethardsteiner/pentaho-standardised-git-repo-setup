@@ -115,6 +115,8 @@ echo "Location of Kettle properties (KETTLE_HOME): ${KETTLE_HOME}"
 echo "Location of Common Configuration:            ${COMMON_CONFIG_HOME}   Branch: "
 echo "Location of Project Configuration:           ${PROJECT_CONFIG_HOME}  Branch: "
 echo "Location of Project Code:    Branch:  "
+echo "Project Properties File Location:            ${PROJECT_PROPERTIES_FILE}"
+echo "Job Properties File Location:                ${JOB_PROPERTIES_FILE}"
 echo "Directory containing PDI installation:       ${PDI_DIR}"
 echo "PDI Job Directory:                           ${JOB_PATH}"
 echo "PDI Job Filename:                            ${JOB_NAME}"
@@ -145,8 +147,8 @@ cd $PDI_DIR
 -pass="${PDI_PASS}" \
 -dir="${WRAPPER_JOB_HOME}" \ 
 -job="${WRAPPER_JOB_NAME}" \
--param:PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
--param:JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
+-param:VAR_PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
+-param:VAR_JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
 -param:VAR_JOB_NAME="${VAR_JOB_NAME}" \
 -param:VAR_TRANSFORMATION_NAME="" \
 -param:VAR_REPOSITORY_FOLDER_PATH="${VAR_REPOSITORY_FOLDER_PATH}" \
