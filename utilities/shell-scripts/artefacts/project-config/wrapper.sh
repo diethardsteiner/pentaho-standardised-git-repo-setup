@@ -102,7 +102,7 @@ PROJECT_PROPERTIES_FILE="${PROJECT_CONFIG_HOME}/properties/${PROJECT_NAME}.prope
 JOB_PROPERTIES_FILE="${PROJECT_CONFIG_HOME}/properties/${JOB_NAME}.properties"
 # PDI repo full path for home directory of wrapper job
 # --- [OPEN] --- Wrapper has to be part of the modules repo
-WRAPPER_JOB_HOME="${PDI_REPO_ROOT_DIR}/modules/di_process_execution_log"
+WRAPPER_JOB_HOME="${PDI_REPO_ROOT_DIR}/modules/master_wrapper"
 # PDI wrapper job name
 WRAPPER_JOB_NAME="jb_master_wrapper"
 
