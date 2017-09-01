@@ -91,7 +91,7 @@ PDI_REPO_ROOT_DIR="/home/pentaho"
 
 
 # PDI repo directory path
-JOB_HOME=${PDI_REPO_ROOT_DIR}/${JOB_HOME}
+PDI_ARTEFACT_DIRECTORY_PATH=${PDI_REPO_ROOT_DIR}/${JOB_HOME}
 # Project logs file name
 JOB_LOG_FILE="${JOB_NAME}.err.log"
 # Project historic logs filename
@@ -118,7 +118,7 @@ echo "Location of Project Code:    Branch:  "
 echo "Project Properties File Location:            ${PROJECT_PROPERTIES_FILE}"
 echo "Job Properties File Location:                ${JOB_PROPERTIES_FILE}"
 echo "Directory containing PDI installation:       ${PDI_DIR}"
-echo "PDI Job Directory:                           ${JOB_PATH}"
+echo "PDI Job Directory:                           ${PDI_ARTEFACT_DIRECTORY_PATH}"
 echo "PDI Job Filename:                            ${JOB_NAME}"
 echo "Location of log file:                        ${PROJECT_LOG_HOME}/${JOB_LOG_FILE}"
 echo "-----------------------------------------------------------------------"
@@ -139,7 +139,7 @@ mkdir -p $PROJECT_LOG_HOME
 START_DATETIME=`date '+%Y-%m-%d_%H-%M-%S'`
 echo "Staring at: ${START_DATETIME}"
 
-cd $PDI_DIR
+cd ${PDI_DIR}
 
 ./kitchen.sh \
 -rep="${PDI_REP}" \
@@ -147,11 +147,11 @@ cd $PDI_DIR
 -pass="${PDI_PASS}" \
 -dir="${WRAPPER_JOB_HOME}" \ 
 -job="${WRAPPER_JOB_NAME}" \
--param:VAR_PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
--param:VAR_JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
--param:VAR_JOB_NAME="${VAR_JOB_NAME}" \
--param:VAR_TRANSFORMATION_NAME="" \
--param:VAR_REPOSITORY_FOLDER_PATH="${VAR_REPOSITORY_FOLDER_PATH}" \
+-param:PARAM_PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
+-param:PARAM_JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
+-param:PARAM_JOB_NAME="${JOB_NAME}" \
+-param:PARAM_TRANSFORMATION_NAME="" \
+-param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PDI_ARTEFACT_DIRECTORY_PATH}" \
 > $PROJECT_LOG_HOME/$JOB_LOG_FILE 2>&1
 
 RES=$?

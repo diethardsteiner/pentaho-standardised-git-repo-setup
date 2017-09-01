@@ -268,6 +268,9 @@ function project_code {
     git submodule add -b master ${MODULES_GIT_REPO_URL} modules
     git submodule init
     git submodule update
+    echo "Setting branch for submodule ..."
+    cd modules
+    git checkout master
   fi
 }
 
