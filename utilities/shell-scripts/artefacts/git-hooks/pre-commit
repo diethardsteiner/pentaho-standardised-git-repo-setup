@@ -1,0 +1,64 @@
+#!/bin/bash
+
+TEST_FAILED=" - Test - [\e[31m FAILED\e[39m ]"
+TEST_PASSED=" - Test - [\e[32m PASSED\e[39m ]"
+
+# color scales: http://misc.flogisoft.com/bash/tip_colors_and_formatting
+
+# utiltiy functions
+function printHeader {
+  echo -e "\e[34m\e[47mRunning $@ Test\e[0m"
+}
+
+function printFailed {
+  echo -e $@ $TEST_FAILED
+}
+
+function printPassed {
+  echo -e $TEST_PASSED
+}
+
+# Check new files meet naming convention
+function check_new_pdi_files_meet_naming_convention {
+  STAT=0
+  TEST_NAME="Naming Convention"
+  printHeader $TEST_NAME
+  
+  NUMBER_OF_UNACCEPTABLE_PDI_FILES=0
+  
+  # Get a list of new files to be pushed
+  # Check which transformations don't match with the following patterns:
+  # jb_filename.kjb, tr_filename.ktr
+  UNACCPETABLE_NEW_PDI_FILES=$(git diff --cached --name-only |
+    # get files that don't follow the convention
+    # regex: optional path
+    grep -Ev "(.*/)?tr\_[a-z0-9\_]+\.ktr$|(.*/)?jb\_[a-z0-9\_]+\.kjb$" |
+    # get PDI files
+    grep -E "ktr$|kjb$"||
+    (echo ""))
+    
+  # if the list is not empty ...
+  if [ ! -z "$UNACCPETABLE_NEW_PDI_FILES" ]; then
+    NUMBER_OF_UNACCEPTABLE_PDI_FILES=$(echo $UNACCPETABLE_NEW_PDI_FILES | wc -w)
+  fi
+  
+  echo "Number of unacceptable new PDI file names: ${NUMBER_OF_UNACCEPTABLE_PDI_FILES}"
+  
+  # error message if unacceptable files present
+  if [ $NUMBER_OF_UNACCEPTABLE_PDI_FILES -gt 0 ]; then
+    printFailed $TEST_NAME
+    echo -e "\e[93mPlease only use alphanumberic filenames!"
+    echo -e "Jobs/Transformations must follow the pattern:"
+    echo -e " - tr_filename.ktr"
+    echo -e " - jb_filename.kjb\e[39m"
+    echo -e "\e[93mThe following filename(s) do not meet filename conventions:\e[39m"
+    echo -e $UNACCEPTABLE_NEW_FILES $UNACCPETABLE_NEW_PDI_FILES
+    STAT=1
+  else
+    printPassed $TEST_NAME
+  fi
+  return $STAT
+}
+
+check_new_pdi_files_meet_naming_convention
+

@@ -100,6 +100,8 @@ done
 
 # Example Usage:
 # /home/dsteiner/git/pentaho-standardised-git-repo-setup/utilities/shell-scripts/initialise-repo.sh -a standalone_project_config -p mysampleproj -e dev -s file-based
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/utilities/shell-scripts/initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-based
+
 
 # Main Script
 
@@ -188,6 +190,8 @@ function pdi_module {
     cd ${PDI_MODULES_DIR}
     echo "Initialising Git Repo ..."
     git init .
+    echo "Adding Git hooks ..."
+    cp ${SHELL_DIR}/artefacts/git-hooks/* ${PDI_MODULES_DIR}/.git/hooks
     # we have to create a file so that the master branch is created
     echo "creatng README file ..."
     touch README.md
@@ -215,6 +219,8 @@ function pdi_module_repo {
     echo "Initialising Git Repo ..."
     cd ${PDI_MODULES_REPO_DIR}
     git init .
+    echo "Adding Git hooks ..."
+    cp ${SHELL_DIR}/artefacts/git-hooks/* ${PDI_MODULES_REPO_DIR}/.git/hooks
     echo "Adding kettle db connection files ..."
     cp -r ${SHELL_DIR}/artefacts/pdi/repo/*.kdb .
     echo "Adding pdi modules as a git submodule ..."
@@ -245,13 +251,10 @@ function project_code {
     cd ${PROJECT_CODE_DIR}
     echo "Initialising Git Repo ..."
     git init .
-    echo "Creating essential branches ..."
-    git branch dev
-    # not creating feature or release branches since there can be many of them
-    echo "Pointing to default git branch"
-    git checkout dev
-    echo "Creating Git Branch ${PDI_ENV} ..."
-    git checkout -b ${PDI_ENV}
+    echo "Adding Git hooks ..."
+    cp ${SHELL_DIR}/artefacts/git-hooks/* ${PROJECT_CODE_DIR}/.git/hooks
+    echo "Creating and pointing to default git branch"
+    git checkout -b dev
     echo "Creating basic folder structure ..."
     mkdir etl mdx mondrian-schemas pentaho-solutions sql
     echo "Creating basic README file ..."
@@ -295,6 +298,8 @@ function project_config {
     cd ${PROJECT_CONFIG_DIR}
     echo "Initialising Git Repo ..."
     git init .
+    echo "Adding Git hooks ..."
+    cp ${SHELL_DIR}/artefacts/git-hooks/* ${PROJECT_CONFIG_DIR}/.git/hooks
     echo "Creating basic folder structure ..."
     mkdir shell-scripts properties
     echo "Adding essential shell files ..."
@@ -337,9 +342,14 @@ function standalone_project_config {
   fi
 
   echo ""
-  echo "IMPORTANT:"
+  echo "==============================="
+  echo ""
+  echo -e "\e[34m\e[47mIMPORTANT\e[0m"
   echo "Amend the following configuration file:"
   echo "${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
+  echo ""
+  echo ""
+  echo "==============================="
   echo ""
 }
 
@@ -385,6 +395,8 @@ function common_config {
     mkdir shell-scripts
     echo "Initialising Git Repo ..."
     git init .
+    echo "Adding Git hooks ..."
+    cp ${SHELL_DIR}/artefacts/git-hooks/* ${COMMON_CONFIG_DIR}/.git/hooks
     # add_kettle_artefacts
     echo "Adding .kettle files ..."
     mkdir .kettle
@@ -403,9 +415,14 @@ function common_config {
     echo "Common configuration for ${PDI_ENV} environment." > ${COMMON_CONFIG_DIR}/README.md
 
     echo ""
-    echo "IMPORTANT:"
+    echo "==============================="
+    echo ""
+    echo -e "\e[34m\e[47mIMPORTANT\e[0m"
     echo "Amend the following configuration file:"
     echo "${COMMON_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
+    echo ""
+    echo ""
+    echo "==============================="
     echo ""
   fi
 }
