@@ -56,7 +56,7 @@ if [ ! -d ${COMMON_CONFIG_HOME} ]; then
   COMMON_CONFIG_HOME="${BASE_DIR}/${PROJECT_NAME}-config-${PDI-ENV}"
 fi
 # source common environment variables here so that they can be used straight away for project specifc variables
-source ${COMMON_CONFIG_HOME}/shell-scripts/set_env_variables.sh
+source ${COMMON_CONFIG_HOME}/shell-scripts/set-env-variables.sh
 # Absolute path for home directory of project properties files
 PROJECT_CONFIG_HOME="${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}"
 # Absolute path for home directory of project log files

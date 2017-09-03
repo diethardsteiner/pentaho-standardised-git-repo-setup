@@ -50,6 +50,11 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "                   Minimum of 3 to a maximum of 10 letters."
     echo "-s  STORAGE TYPE:  Which type of PDI storage type to use."
     echo "                   Possible values: file-based, file-repo. Not supported: db-repo, ee-repo"
+    echo ""
+    echo "Sample usage:"
+    echo "initialise-repo.sh -a standalone_project_config -p mysampleproj -e dev -s file-based"
+    echo "initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-repo"
+    echo ""
     echo "exiting ..."
     exit 1
 fi
@@ -268,12 +273,16 @@ function project_code {
       echo ""
     fi
     echo "Adding pdi modules as a git submodule ..."
-    git submodule add -b master ${MODULES_GIT_REPO_URL} modules
+    git submodule add -b master ${MODULES_GIT_REPO_URL} etl/modules
     git submodule init
     git submodule update
     echo "Setting branch for submodule ..."
-    cd modules
+    cd etl/modules
     git checkout master
+    cd ../..
+    echo "Committing new files ..."
+    git add --all
+    git commit -am "initial commit"
   fi
 }
 
@@ -328,15 +337,19 @@ function standalone_project_config {
   fi
   project_config
   echo "Adding essential shell files ..."
-  cp ${SHELL_DIR}/artefacts/common-config/*.sh ${PROJECT_CONFIG_DIR}/shell-scripts
+  cp ${SHELL_DIR}/artefacts/common-config/set-env-variables.sh ${PROJECT_CONFIG_DIR}/shell-scripts
+  perl -0777 \
+    -pe "s@\{\{ KETTLE_HOME \}\}@${PROJECT_CONFIG_DIR}@igs" \
+    -i ${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh 
   # add_kettle_artefacts
-  echo "Adding .kettle files ..."
+  echo "Adding .kettle files for ${PDI_STORAGE_TYPE} ..."
   mkdir .kettle
   cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties .kettle
-  # cp ${SHELL_DIR}/artefacts/pdi/.kettle/repositories.xml .kettle
-  add_pdi_repository \
-    "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/.kettle/repositories.xml" \
-    "${BASE_DIR}/${PROJECT_NAME}-code/etl"
+  if [ ${PDI_STORAGE_TYPE} = 'file-repo' ]; then
+    add_pdi_repository \
+      "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/.kettle/repositories.xml" \
+      "${BASE_DIR}/${PROJECT_NAME}-code/etl"
+  fi
   if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
     cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
   fi
@@ -348,7 +361,8 @@ function standalone_project_config {
   echo "Amend the following configuration file:"
   echo "${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
   echo ""
-  echo ""
+  echo "Before using Spoon, source this file:"
+  echo "source ${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
   echo "==============================="
   echo ""
 }
@@ -410,7 +424,10 @@ function common_config {
     fi
     # ---
     echo "Adding essential shell files ..."
-    cp ${SHELL_DIR}/artefacts/common-config/*.sh ${COMMON_CONFIG_DIR}/shell-scripts
+    cp ${SHELL_DIR}/artefacts/common-config/set-env-variables.sh ${COMMON_CONFIG_DIR}/shell-scripts
+    perl -0777 \
+      -pe "s@{{ KETTLE_HOME }}@${COMMON_CONFIG_DIR}@igs" \
+      -i ${COMMON_CONFIG_DIR}/shell-scripts/set-env-variables.sh 
     echo "Creating basic README file ..."
     echo "Common configuration for ${PDI_ENV} environment." > ${COMMON_CONFIG_DIR}/README.md
 
