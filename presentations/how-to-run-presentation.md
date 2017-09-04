@@ -28,6 +28,6 @@ Add to main HTML:
 
 ```
 code {
-  color: darkgray;
+  color: #349cd5;
 }
 ```

@@ -22,7 +22,7 @@ Clone the `utilities` repo. Inside the `shell-script` folder, you can find a scr
 - common **docu repo** (`common-documentation`)
 - project **docu repo** (`<proj>-documentation`)
 - PDI **modules** (`modules`): for reusable code/patterns. Holds plain modules only, so it can be use either in file-based or repo-based PDI setup.
-- PDI **modules repo** (modules-pdi-repo): required when creating modules via PDI repo.
+- PDI **modules repo** (`modules-pdi-repo`): required when creating modules via PDI repo.
  
 with the very basic folder structure and required artifacts. The script enables you to create them individually or combinations of certain repositories.
 
