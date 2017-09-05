@@ -1,13 +1,15 @@
 #!/bin/bash
 
 # expects:
+# - GIT_DIR: location of the git repo you want to package
 # - VERSION: git tag 
 # - PREFIX 
 # - PACKAGE_FILE_PATH: path to and filename of package file
 
 while read VERSION PREFIX PACKAGE_FILE_PATH
-# ./package-git-repo.sh 0.1 myproject /tmp/myproject
+# Usage: ./package-git-repo.sh $USER/git/myproject 0.1 myproject /tmp/myproject
 
+cd ${GIT_DIR}
 # create dedicated release branch based on dev branch
 # git checkout -b release_${VERSION} dev
 # git tag ${VERSION}
@@ -26,8 +28,8 @@ git archive --prefix=${PREFIX}-${VERSION}/ -o ${PACKAGE_FILE_PATH} ${VERSION} \
   # if version does not exist checkout head
   git archive --prefix=${PREFIX}-${VERSION}/ -o ${PACKAGE_FILE_PATH} HEAD)
 
-# save current working directory in var for later use
-P=`pdw` && \
+# FETCH SUBMODULE CODE
+
 # pipe the output of the git submodule foreach command into a while loop
 (echo .; git submodule foreach) | \
 # the previous command retruns something like `Entering etl/modules`
@@ -41,15 +43,15 @@ while read ENTERING PATH; do \
   # check there is actually a path value available
   [ "${PATH}" = "" ] && continue; \
   # create folder to store tmp tar files if it doesn't exist already
-  [ ! -d "${P}/rpmbuild" ] && mkdir ${P}/rpmbuild;
+  [ ! -d "${GIT_DIR}/rpmbuild" ] && mkdir ${GIT_DIR}/rpmbuild;
   # change to submodule folder
   (cd ${PATH} && \
   # Run a normal git archive command
   git archive --prefix=${PREFIX}/${PATH}/ HEAD \
   # Create a plain uncompressed tar archive in a temporary director
-  > ${P}/rpmbuild/tmp.tar && \
+  > ${GIT_DIR}/rpmbuild/tmp.tar && \
   # Add the temporary submodule tar file to the existing project tar file
-  tar --concatenate --file=${P}/${PACKAGE_FILE_PATH} ${P}/rpmbuild/tmp.tar && \
+  tar --concatenate --file=${PACKAGE_FILE_PATH} ${GIT_DIR}/rpmbuild/tmp.tar && \
   #  Remove temporary tar file
-  rm $P/rpmbuild/tmp.tar); \
+  rm ${GIT_DIR}/rpmbuild/tmp.tar); \
 done
