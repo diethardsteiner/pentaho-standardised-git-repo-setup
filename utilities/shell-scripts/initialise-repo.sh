@@ -365,6 +365,12 @@ function standalone_project_config {
   echo "source ${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
   echo "==============================="
   echo ""
+
+  echo "Running set-env-variables.sh now so that at least KETTLE_HOME is defined."
+  echo "You can start PDI Spoon now if working on a dev machine."
+  echo ""
+
+  source ${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh
 }
 
 # retired since we use modules now
@@ -415,10 +421,12 @@ function common_config {
     echo "Adding .kettle files ..."
     mkdir .kettle
     cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties .kettle
-    # cp ${SHELL_DIR}/artefacts/pdi/.kettle/repositories.xml .kettle
-    add_pdi_repository \
-      "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/.kettle/repositories.xml" \
-      "${BASE_DIR}/${PROJECT_NAME}-code/etl"
+    if [ ${PDI_STORAGE_TYPE} = "file-repo" ]; then
+      # cp ${SHELL_DIR}/artefacts/pdi/.kettle/repositories.xml .kettle
+      add_pdi_repository \
+        "${COMMON_CONFIG_DIR}/.kettle/repositories.xml" \
+        "${BASE_DIR}/${PROJECT_NAME}-code/etl"
+    fi
     if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
       cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
     fi
@@ -426,7 +434,7 @@ function common_config {
     echo "Adding essential shell files ..."
     cp ${SHELL_DIR}/artefacts/common-config/set-env-variables.sh ${COMMON_CONFIG_DIR}/shell-scripts
     perl -0777 \
-      -pe "s@{{ KETTLE_HOME }}@${COMMON_CONFIG_DIR}@igs" \
+      -pe "s@\{\{ KETTLE_HOME \}\}@${COMMON_CONFIG_DIR}@igs" \
       -i ${COMMON_CONFIG_DIR}/shell-scripts/set-env-variables.sh 
     echo "Creating basic README file ..."
     echo "Common configuration for ${PDI_ENV} environment." > ${COMMON_CONFIG_DIR}/README.md
@@ -441,6 +449,12 @@ function common_config {
     echo ""
     echo "==============================="
     echo ""
+
+    echo "Running set-env-variables.sh now so that at least KETTLE_HOME is defined."
+    echo "You can start PDI Spoon now if working on a dev machine."
+    echo ""
+
+    source ${COMMON_CONFIG_DIR}/shell-scripts/set-env-variables.sh
   fi
 }
 
