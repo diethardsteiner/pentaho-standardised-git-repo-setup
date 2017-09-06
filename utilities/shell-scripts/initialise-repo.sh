@@ -256,8 +256,22 @@ function project_code {
     cd ${PROJECT_CODE_DIR}
     echo "Initialising Git Repo ..."
     git init .
+
     echo "Adding Git hooks ..."
     cp ${SHELL_DIR}/artefacts/git-hooks/* ${PROJECT_CODE_DIR}/.git/hooks
+    perl -0777 \
+      -pe "s@\{\{ IS_CONFIG \}\}@N@igs" \
+      -i ${PROJECT_CODE_DIR}/.git/hooks/pre-commit 
+    if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
+      perl -0777 \
+        -pe "s@\{\{ IS_REPO_BASED \}\}@N@igs" \
+        -i ${PROJECT_CODE_DIR}/.git/hooks/pre-commit
+    else
+      perl -0777 \
+        -pe "s@\{\{ IS_REPO_BASED \}\}@Y@igs" \
+        -i ${PROJECT_CODE_DIR}/.git/hooks/pre-commit
+    fi
+
     echo "Creating and pointing to default git branch"
     git checkout -b dev
     echo "Creating basic folder structure ..."
@@ -309,6 +323,13 @@ function project_config {
     git init .
     echo "Adding Git hooks ..."
     cp ${SHELL_DIR}/artefacts/git-hooks/* ${PROJECT_CONFIG_DIR}/.git/hooks
+    perl -0777 \
+      -pe "s@\{\{ IS_CONFIG \}\}@Y@igs" \
+      -i ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit 
+    perl -0777 \
+      -pe "s@\{\{ IS_REPO_BASED \}\}@N@igs" \
+      -i ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
+    
     echo "Creating basic folder structure ..."
     mkdir shell-scripts properties
     echo "Adding essential shell files ..."
@@ -417,6 +438,13 @@ function common_config {
     git init .
     echo "Adding Git hooks ..."
     cp ${SHELL_DIR}/artefacts/git-hooks/* ${COMMON_CONFIG_DIR}/.git/hooks
+    perl -0777 \
+      -pe "s@\{\{ IS_CONFIG \}\}@Y@igs" \
+      -i ${COMMON_CONFIG_DIR}/.git/hooks/pre-commit 
+    perl -0777 \
+      -pe "s@\{\{ IS_REPO_BASED \}\}@N@igs" \
+      -i ${COMMON_CONFIG_DIR}/.git/hooks/pre-commit
+
     # add_kettle_artefacts
     echo "Adding .kettle files ..."
     mkdir .kettle

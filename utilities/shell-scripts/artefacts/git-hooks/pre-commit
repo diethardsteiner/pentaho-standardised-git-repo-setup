@@ -1,28 +1,69 @@
 #!/bin/bash
 
+# check whether it is a config or code repository
+IS_CONFIG={{ IS_CONFIG }}
+# IS_CONFIG=N
+# check whether it is a file-based or repo-based PDI setup
+IS_REPO_BASED={{ IS_REPO_BASED }}
+IS_REPO_BASED=N
 TEST_FAILED=" - Test - [\e[31m FAILED\e[39m ]"
 TEST_PASSED=" - Test - [\e[32m PASSED\e[39m ]"
+GIT_ROOT_DIR=`git rev-parse --show-toplevel`
+STAT=0
 
 # color scales: http://misc.flogisoft.com/bash/tip_colors_and_formatting
 
 # utiltiy functions
-function printHeader {
+function print_header {
   echo -e "\e[34m\e[47mRunning $@ Test\e[0m"
 }
 
-function printFailed {
-  echo -e $@ $TEST_FAILED
+function print_failed {
+  echo -e $@ ${TEST_FAILED}
 }
 
-function printPassed {
-  echo -e $TEST_PASSED
+function print_passed {
+  echo -e ${TEST_PASSED}
+}
+
+
+# Check for non ASCII filenames
+function check_for_non_ascii_filenames {
+
+  TEST_NAME="ASCII Characters Filename Check"
+  print_header ${TEST_NAME}
+  
+  NUMBER_OF_NON_ASCII_FILE_NAMES=0
+
+  # printable range starts at space character and ends with tilde
+  # Note that the brackets around the tr range are required for portability
+  # to Solari's /usr/bin/tr. The square bracket bytes happen to fall in 
+  # the designated space
+  NON_ASCII_FILE_NAMES=`git diff --cached --name-only | LC_ALL=C tr -d '[ -~]\0'`
+  NUMBER_OF_NON_ASCII_FILE_NAMES=`echo ${NON_ASCII_FILE_NAMES} | wc -w`
+
+   
+  echo "Number of non ASCII file names: ${NUMBER_OF_NON_ASCII_FILE_NAMES}"
+  
+  # error message if unacceptable files present
+  if [ ${NUMBER_OF_NON_ASCII_FILE_NAMES} -gt 0 ]; then
+    print_failed ${TEST_NAME}
+    echo -e "\e[93mPlease only use ASCII characters for filenames!"
+    echo -e "Following filenames contain non ASCII characters:"
+    echo -e "${NON_ASCII_FILE_NAMES}"
+    STAT=1
+  else
+    print_passed ${TEST_NAME}
+  fi
+  return ${STAT}
+
 }
 
 # Check new files meet naming convention
 function check_new_pdi_files_meet_naming_convention {
-  STAT=0
+  
   TEST_NAME="Naming Convention"
-  printHeader $TEST_NAME
+  print_header ${TEST_NAME}
   
   NUMBER_OF_UNACCEPTABLE_PDI_FILES=0
   
@@ -38,27 +79,140 @@ function check_new_pdi_files_meet_naming_convention {
     (echo ""))
     
   # if the list is not empty ...
-  if [ ! -z "$UNACCPETABLE_NEW_PDI_FILES" ]; then
-    NUMBER_OF_UNACCEPTABLE_PDI_FILES=$(echo $UNACCPETABLE_NEW_PDI_FILES | wc -w)
+  if [ ! -z "${UNACCPETABLE_NEW_PDI_FILES}" ]; then
+    NUMBER_OF_UNACCEPTABLE_PDI_FILES=$(echo ${UNACCPETABLE_NEW_PDI_FILES} | wc -w)
   fi
   
   echo "Number of unacceptable new PDI file names: ${NUMBER_OF_UNACCEPTABLE_PDI_FILES}"
   
   # error message if unacceptable files present
-  if [ $NUMBER_OF_UNACCEPTABLE_PDI_FILES -gt 0 ]; then
-    printFailed $TEST_NAME
+  if [ ${NUMBER_OF_UNACCEPTABLE_PDI_FILES} -gt 0 ]; then
+    print_failed ${TEST_NAME}
     echo -e "\e[93mPlease only use alphanumberic filenames!"
     echo -e "Jobs/Transformations must follow the pattern:"
     echo -e " - tr_filename.ktr"
     echo -e " - jb_filename.kjb\e[39m"
     echo -e "\e[93mThe following filename(s) do not meet filename conventions:\e[39m"
-    echo -e $UNACCEPTABLE_NEW_FILES $UNACCPETABLE_NEW_PDI_FILES
+    echo -e ${UNACCPETABLE_NEW_PDI_FILES}
     STAT=1
   else
-    printPassed $TEST_NAME
+    print_passed ${TEST_NAME}
   fi
-  return $STAT
+  return ${STAT}
 }
 
-check_new_pdi_files_meet_naming_convention
+# Check for jobs and transformations whose repository path does not match their filesystem path
+# applies to file-repo setup only
+function check_repo_path {
+  
+  TEST_NAME="Check repo paths"
+  cd ${GIT_ROOT_DIR}
+  for MY_FILE in `find . ! -type d -name '*ktr' -or -name '*kjb'`
+  do
+    FOLDER=$(dirname ${MY_FILE})
+    REPO_FOLDER=$(grep -m 1 '<directory>' $MY_FILE | \
+      sed -e 's| *<directory>&#x2f;||g' \
+          -e 's| *<directory>/||g' \
+          -e 's|&#x2f;|/|g' \
+          -e 's|</directory>.*||g')
+    if [[ ! "${FOLDER}" == "./${REPO_FOLDER}" ]]; then
+      echo "${MY_FILE} -> ${FOLDER} -> ${REPO_FOLDER}"
+      STAT=1
+    fi
+  done
+  
+  if [ ${STAT} -gt 0 ]; then
+    print_failed ${TEST_NAME}
+  else
+    print_passed ${TEST_NAME}
+  fi
+  
+  return ${STAT}
+}
 
+# Check new files matches accepted file types
+function check_supported_file_type {
+  
+  TEST_NAME="Accepted File Type"
+  print_header ${TEST_NAME}
+ 
+  NUMBER_OF_NOT_SUPPORTED_NEW_FILES=0
+  
+  # Get a list of new files to be pushed
+  # Check if they match a list of accepted file extensions
+  # Keep non matching ones
+  if [ ${IS_CONFIG} = "Y" ]; then
+    NOT_SUPPORTED_NEW_FILES=$(git diff --cached --name-only |
+      # non-accepted file types
+      grep --invert-match -E "md$|properties$|sh$"||
+      (echo ""))
+   else
+     NOT_SUPPORTED_NEW_FILES=$(git diff --cached --name-only |
+      # non-accepted file types
+      grep --invert-match -E "cda$|cdfde$|css$|csv$|html$|jpeg$|js$|json$|kjb$|ktr$|md$|png$|prpt$|prpti$|svg$|txt$|wcdf$|xanalyzer$|xmi$|xml"||
+      (echo "")) 
+    fi
+  # if the list is not empty ...
+  if [ ! -z "${NOT_SUPPORTED_NEW_FILES}" ]; then
+    NUMBER_OF_NOT_SUPPORTED_NEW_FILES=$(echo $NOT_SUPPORTED_NEW_FILES | wc -w)
+  fi
+  
+  echo "Number of files with not supported file types: ${NUMBER_OF_NOT_SUPPORTED_NEW_FILES}"
+  
+  # error message if unacceptable files present
+  if [ ${NUMBER_OF_NOT_SUPPORTED_NEW_FILES} -gt 0 ]; then
+    print_failed ${TEST_NAME}
+    echo -e "\e[93mThe following filename(s) do not match the list of accepted file extensions:\e[39m"
+    echo -e ${NOT_SUPPORTED_NEW_FILES}
+    STAT=1
+  else
+    print_passed ${TEST_NAME}
+  fi
+  return ${STAT}
+}
+
+
+if [ ${IS_CONFIG} = "Y" ]; then
+  check_supported_file_type
+  check_for_non_ascii_filenames
+else
+  check_supported_file_type
+  check_for_non_ascii_filenames
+  check_new_pdi_files_meet_naming_convention
+  if [ ${IS_REPO_BASED} = "Y" ]; then
+    check_repo_path
+  fi
+fi
+
+if [ ${STAT} -gt 0 ]; then
+  echo ""
+  echo -e "[\e[31m Too many errors. Not committing anything. Resolve issues. \e[39m ]"
+  echo ""
+  exit 1
+fi
+
+# supported extensions:
+
+# cda
+# cdfde
+# css
+# csv
+# html
+# jpeg
+# js
+# json
+# kjb
+# ktr
+# md
+# png
+# prpt
+# prpti
+# svg
+# txt
+# wcdf
+# xanalyzer
+# xmi
+# xml
+
+# properties
+# sh

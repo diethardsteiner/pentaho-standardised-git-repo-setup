@@ -52,20 +52,22 @@ while read ENTERING PATH; do
   TEMP="${TEMP#\'}"
   PATH=${TEMP}
   # check there is actually a path value available
-  [ "${PATH}" = "" ] && continue
-  # create folder to store tmp tar files if it doesn't exist already
-  if [ ! -d "${GIT_DIR}/rpmbuild" ]; then
-    mkdir ${GIT_DIR}/rpmbuild
-    echo "Changing to following submodule dir: ${GIT_DIR}/${PATH}"
-    # change to submodule folder
-    cd ${GIT_DIR}/${PATH}
-    # Run a normal git archive command
-    git archive --prefix=${PREFIX}/${PATH}/ HEAD \
-      # Create a plain uncompressed tar archive in a temporary director
-      > ${GIT_DIR}/rpmbuild/tmp.tar
-    # Add the temporary submodule tar file to the existing project tar file
-    tar --concatenate --file=${PACKAGE_FILE_PATH} ${GIT_DIR}/rpmbuild/tmp.tar
-    # Remove temporary tar file
-    rm ${GIT_DIR}/rpmbuild/tmp.tar
+  if [ ! "${PATH}" = "" ]; then
+    # create folder to store tmp tar files if it doesn't exist already
+    if [ ! -d "${GIT_DIR}/rpmbuild" ]; then
+      echo "Creating tmp dir ${GIT_DIR}/rpmbuild ..."
+      mkdir ${GIT_DIR}/rpmbuild
+      echo "Changing to following submodule dir: ${GIT_DIR}/${PATH}"
+      # change to submodule folder
+      cd ${GIT_DIR}/${PATH}
+      # Run a normal git archive command
+      git archive --prefix=${PREFIX}/${PATH}/ HEAD \
+        # Create a plain uncompressed tar archive in a temporary director
+        > ${GIT_DIR}/rpmbuild/tmp.tar
+      # Add the temporary submodule tar file to the existing project tar file
+      tar --concatenate --file=${PACKAGE_FILE_PATH} ${GIT_DIR}/rpmbuild/tmp.tar
+      # Remove temporary tar file
+      rm ${GIT_DIR}/rpmbuild/tmp.tar
+     fi
    fi
 done
