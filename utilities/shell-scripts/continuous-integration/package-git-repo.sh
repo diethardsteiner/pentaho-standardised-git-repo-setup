@@ -35,22 +35,24 @@ cd ${GIT_DIR}
 # back then. On target system you can use a sym link to abstract this.
 git archive --prefix=${PREFIX}-${VERSION}/ -o ${PACKAGE_FILE_PATH} ${VERSION} \
   2> /dev/null || \
-  (echo "Warning: ${VERSION} does not exist." && \
+  (echo "Warning: ${VERSION} does not exist. Using last commit instead." && \
   # if version does not exist checkout head
-  git archive --prefix=${PREFIX}-${VERSION}/ -o ${PACKAGE_FILE_PATH} HEAD)
-
+  # git archive --prefix=${PREFIX}-${VERSION}/ -o ${PACKAGE_FILE_PATH} HEAD)
+  LAST_COMMIT_ID=`git log --format="%H" -n 1` && \
+  VERSION=`${LAST_COMMIT_ID}` && \
+  git archive --prefix=${PREFIX}-${VERSION}/ -o ${PACKAGE_FILE_PATH} ${LAST_COMMIT_ID})
+  
 # FETCH SUBMODULE CODE
 
 # pipe the output of the git submodule foreach command into a while loop
 (echo .; git submodule foreach) | \
 # the previous command retruns something like `Entering etl/modules`
 # we are only interested in the latter part
-# we simply treat them as different parameters and only use the last one
 while read ENTERING PATH_SUBMODULE; do
   # get rid of the enclosing single quotation marks
-  TEMP="${PATH_SUBMODULE%\'}"
-  TEMP="${TEMP#\'}"
-  PATH_SUBMODULE=${TEMP}
+  TEMP_PATH_SUBMODULE="${PATH_SUBMODULE%\'}"
+  TEMP_PATH_SUBMODULE="${TEMP_PATH_SUBMODULE#\'}"
+  PATH_SUBMODULE=${TEMP_PATH_SUBMODULE}
   # check there is actually a path value available
   if [ ! "${PATH_SUBMODULE}" = "" ]; then
     # create folder to store tmp tar files if it doesn't exist already
@@ -62,7 +64,8 @@ while read ENTERING PATH_SUBMODULE; do
       cd ${GIT_DIR}/${PATH_SUBMODULE}
       # Run a normal git archive command
       # Create a plain uncompressed tar archive in a temporary director
-      git archive --prefix=${PREFIX}-${VERSION}/${PATH_SUBMODULE}/ HEAD > ${GIT_DIR}/rpmbuild/tmp.tar
+      LAST_COMMIT_ID=`git log --format="%H" -n 1`
+      git archive --prefix=${PREFIX}-${VERSION}/${PATH_SUBMODULE}/ ${LAST_COMMIT_GIT} > ${GIT_DIR}/rpmbuild/tmp.tar
       # Add the temporary submodule tar file to the existing project tar file
       tar --concatenate --file=${PACKAGE_FILE_PATH} ${GIT_DIR}/rpmbuild/tmp.tar
       # Remove temporary tar file
