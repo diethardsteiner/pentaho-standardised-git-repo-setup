@@ -21,27 +21,28 @@ echo "PACKAGE_FILE_PATH: ${PACKAGE_FILE_PATH}"
 # Usage: ./package-git-repo.sh $USER/git/myproject 0.1 myproject /tmp/myproject.tar
 
 cd ${GIT_DIR}
-# create dedicated release branch based on dev branch
-# git checkout -b release_${VERSION} dev
-# git tag ${VERSION}
-# git push --tags
-# git archive ${VERSION} -v -o ${PACKAGE_FILE_PATH}.zip --prefix="${PREFIX}/"
 
-# inlude submodules
-# based on https://ttboj.wordpress.com/2015/07/23/git-archive-with-submodules-and-tar-magic/
-
-
-# OPEN: Adding version number to prefix might be a good idea since you can easily roll
+# Adding version number to prefix might be a good idea since you can easily roll
 # back then. On target system you can use a sym link to abstract this.
-git archive --prefix=${PREFIX}-${VERSION}/ -o ${PACKAGE_FILE_PATH} ${VERSION} \
-  2> /dev/null || \
-  (echo "Warning: ${VERSION} does not exist. Using last commit instead." && \
-  # if version does not exist checkout head
-  # git archive --prefix=${PREFIX}-${VERSION}/ -o ${PACKAGE_FILE_PATH} HEAD)
-  LAST_COMMIT_ID=`git log --format="%H" -n 1` && \
-  VERSION=`${LAST_COMMIT_ID}` && \
-  git archive --prefix=${PREFIX}-${VERSION}/ -o ${PACKAGE_FILE_PATH} ${LAST_COMMIT_ID})
-  
+
+TAG=`git tag | grep ${VERSION}`
+if [ ${TAG}="" ]; then
+  echo "Warning: ${VERSION} does not exist. Using last commit instead."
+  LAST_COMMIT_ID=`git log --format="%H" -n 1`
+  TAG=${LAST_COMMIT_ID}
+fi
+
+git archive --prefix=${PREFIX}-${TAG}/ -o ${PACKAGE_FILE_PATH} ${TAG}
+
+# create folder to store tmp tar files if it doesn't exist already
+if [ ! -d "${GIT_DIR}/rpmbuild" ]; then
+  echo "Creating tmp dir ${GIT_DIR}/rpmbuild ..."
+  mkdir ${GIT_DIR}/rpmbuild
+fi
+
+echo "Following version was used for the package:" > ${GIT_DIR}/rpmbuild/MANIFEST-REPOS.md
+echo "main module tag/commit id: ${TAG}" >> ${GIT_DIR}/rpmbuild/MANIFEST-REPOS.md
+
 # FETCH SUBMODULE CODE
 
 # pipe the output of the git submodule foreach command into a while loop
@@ -55,27 +56,70 @@ while read ENTERING PATH_SUBMODULE; do
   PATH_SUBMODULE=${TEMP_PATH_SUBMODULE}
   # check there is actually a path value available
   if [ ! "${PATH_SUBMODULE}" = "" ]; then
-    # create folder to store tmp tar files if it doesn't exist already
-    if [ ! -d "${GIT_DIR}/rpmbuild" ]; then
-      echo "Creating tmp dir ${GIT_DIR}/rpmbuild ..."
-      mkdir ${GIT_DIR}/rpmbuild
-      echo "Changing to following submodule dir: ${GIT_DIR}/${PATH_SUBMODULE}"
-      # change to submodule folder
-      cd ${GIT_DIR}/${PATH_SUBMODULE}
-      # Run a normal git archive command
-      # Create a plain uncompressed tar archive in a temporary director
-      LAST_COMMIT_ID=`git log --format="%H" -n 1`
-      git archive --prefix=${PREFIX}-${VERSION}/${PATH_SUBMODULE}/ ${LAST_COMMIT_GIT} > ${GIT_DIR}/rpmbuild/tmp.tar
-      # Add the temporary submodule tar file to the existing project tar file
-      tar --concatenate --file=${PACKAGE_FILE_PATH} ${GIT_DIR}/rpmbuild/tmp.tar
-      # Remove temporary tar file
-      rm ${GIT_DIR}/rpmbuild/tmp.tar
-     fi
-   fi
+    echo "Submodule found: ${PATH_SUBMODULE}"
+    echo "Changing to following submodule dir: ${GIT_DIR}/${PATH_SUBMODULE}"
+    # change to submodule folder
+    cd ${GIT_DIR}/${PATH_SUBMODULE}
+    # Run a normal git archive command
+    # Create a plain uncompressed tar archive in a temporary director
+    LAST_COMMIT_ID_SUBMODULE=`git log --format="%H" -n 1`
+    echo "Packaging Submodule ..."
+    git archive --prefix=${PREFIX}-${TAG}/${PATH_SUBMODULE}/ ${LAST_COMMIT_ID_SUBMODULE} > ${GIT_DIR}/rpmbuild/tmp.tar
+    # Add the temporary submodule tar file to the existing project tar file
+    echo "Adding Submodule package to Main package ..."
+    tar --concatenate --file=${PACKAGE_FILE_PATH} ${GIT_DIR}/rpmbuild/tmp.tar
+    # Remove temporary tar file
+    rm ${GIT_DIR}/rpmbuild/tmp.tar
+    echo "submodule ${PATH_SUBMODULE} tag/commit id: ${LAST_COMMIT_ID_SUBMODULE}" >> ${GIT_DIR}/rpmbuild/MANIFEST-REPOS.md
+ fi
 done
 
-# add the manifest
+# ADD THE MANIFEST
+# using the -C flag to change to the directory where the file is in
+# so that it is placed in the root directory of our file 
+echo "Adding Repo Manifest to Main package ..."
+    tar --append --file=${PACKAGE_FILE_PATH} -C ${GIT_DIR}/rpmbuild MANIFEST-REPOS.md
 
-# add changelog
 
-# add RPM specfile
+function git_root {
+  git rev-parse --show-toplevel
+}
+
+# create a manifest for files of main repo only (no submodules)
+cd `git_root`
+git ls-tree -r ${TAG} --abbrev > ${GIT_DIR}/rpmbuild/MANIFEST.md
+
+echo "Adding File Manifest to Main package ..."
+    tar --append --file=${PACKAGE_FILE_PATH} -C ${GIT_DIR}/rpmbuild MANIFEST.md
+
+# ADD CHANGELOG
+
+
+cd `git_root`
+# get commit id from first commit
+TAG_FROM=$(git log --reverse --pretty="%H" -1) # [OPEN] This is still returning the last one
+TAG_TO=${TAG}
+TEMP=`mktemp`
+
+# Append the new log to the top of the changelog file
+echo -e "# Version ${TAG_TO}\n=============" > ${GIT_DIR}/rpmbuild/CHANGELOG.md
+echo "Showing changes from: ${TAG_FROM}" >> ${GIT_DIR}/rpmbuild/CHANGELOG.md
+git log $TAG_FROM..$TAG_TO --no-merges --sparse --date='format-local:%Y-%m-%d %H:%M:%S' \
+--pretty=format:"%ad %<(20,tunc)%aN %s" | sed -e 's/_/\\_/g' && \
+echo -e "\n" >> ${GIT_DIR}/rpmbuild/CHANGELOG.md
+
+echo "Adding File Manifest to Main package ..."
+    tar --append --file=${PACKAGE_FILE_PATH} -C ${GIT_DIR}/rpmbuild CHANGELOG.md
+# [OPEN] not working yet
+
+
+# ADD RPM SPECFILE
+
+
+
+
+# Remove temporary files
+if [ -d "${GIT_DIR}/rpmbuild" ]; then
+  echo "Reomoving tmp dir ${GIT_DIR}/rpmbuild ..."
+  rm -r ${GIT_DIR}/rpmbuild
+fi

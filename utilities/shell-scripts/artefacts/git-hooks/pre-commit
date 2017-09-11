@@ -171,6 +171,30 @@ function check_supported_file_type {
   return ${STAT}
 }
 
+function check_supported_branch_name {
+  
+  TEST_NAME="supported Branch Name"
+  print_header ${TEST_NAME}
+
+  VALID_BRANCH_NAME_COUNT=0
+
+  BRANCH_NAME=`git branch | while read STAR BRANCH; do echo $BRANCH; done`
+
+  VALID_BRANCH_NAME_COUNT=$(echo BRANCH_NAME | grep -E "^master$|^feature\_.+|^release\_.+|^hotfix\_.+" | wc -w)
+
+
+  # error message if unacceptable files present
+  if [ ${VALID_BRANCH_NAME_COUNT} = 0 ]; then
+    print_failed ${TEST_NAME}
+    echo -e "\e[93mThe following branch name does not match the list of accepted ones:\e[39m"
+    echo -e ${BRANCH_NAME}
+    echo -e "Accepted Branch Names: master, feature_*, release_*, hotfix_*"
+    STAT=1
+  else
+    print_passed ${TEST_NAME}
+  fi
+  return ${STAT}
+}
 
 if [ ${IS_CONFIG} = "Y" ]; then
   check_supported_file_type
@@ -190,6 +214,8 @@ if [ ${STAT} -gt 0 ]; then
   echo ""
   exit 1
 fi
+
+
 
 # supported extensions:
 
