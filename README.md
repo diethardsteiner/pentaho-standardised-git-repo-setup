@@ -1,5 +1,4 @@
-# pentaho-standardised-git-repo-setup
-
+# Getting Started
 
 ## Initial Setup
 
@@ -63,3 +62,14 @@ As the next step you might want to adjust:
 - `myproject-config-<env>/properties/jb_myproject_master.properties`
 
 Don't forget to commit all these changes. You will also have to set the Git remote for these repositories.
+
+# Code Repository
+
+## What is NOT Code
+
+- **Configuration**: Goes into dedicated config repo by environment.
+- **Documentation**: Goes into dedicated docu repo. 
+- **Data**:
+	- Lookup Data: E.g. business user provide you with lookup data to enrich operational data. This should be stored separately. 
+	- Test Data: Can be stored with your code since it serves the purpose of testing the quality of your code.  
+- **Binary files**: Excel, Word, Zip files etc
