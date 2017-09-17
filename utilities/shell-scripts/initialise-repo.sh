@@ -106,6 +106,7 @@ done
 # Example Usage:
 # /home/dsteiner/git/pentaho-standardised-git-repo-setup/utilities/shell-scripts/initialise-repo.sh -a standalone_project_config -p mysampleproj -e dev -s file-based
 # /home/dsteiner/git/pentaho-standardised-git-repo-setup/utilities/shell-scripts/initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-based
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/utilities/shell-scripts/initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-repo
 
 
 # Main Script
@@ -392,6 +393,7 @@ function standalone_project_config {
   echo ""
 
   source ${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh
+
 }
 
 # retired since we use modules now

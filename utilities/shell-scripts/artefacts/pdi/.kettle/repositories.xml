@@ -10,4 +10,14 @@
     <read_only>N</read_only>
     <hides_hidden_files>N</hides_hidden_files>
   </repository>  
+  <!-- example Pentaho Jackrabbit Repository CE and EE
+  <repository>    
+    <id>PentahoEnterpriseRepository</id>
+    <name>Local Pentaho Server</name>
+    <description>Pentaho repository</description>
+    <is_default>false</is_default>
+    <repository_location_url>http://localhost:8080/pentaho</repository_location_url>
+    <version_comment_mandatory>N</version_comment_mandatory>
+  </repository>
+  -->
 </repositories>
