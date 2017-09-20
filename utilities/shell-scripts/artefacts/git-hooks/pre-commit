@@ -5,7 +5,7 @@ IS_CONFIG={{ IS_CONFIG }}
 # IS_CONFIG=N
 # check whether it is a file-based or repo-based PDI setup
 IS_REPO_BASED={{ IS_REPO_BASED }}
-IS_REPO_BASED=N
+#IS_REPO_BASED=N
 TEST_FAILED=" - Test - [\e[31m FAILED\e[39m ]"
 TEST_PASSED=" - Test - [\e[32m PASSED\e[39m ]"
 GIT_ROOT_DIR=`git rev-parse --show-toplevel`
@@ -105,18 +105,20 @@ function check_new_pdi_files_meet_naming_convention {
 # applies to file-repo setup only
 function check_repo_path {
   
-  TEST_NAME="Check repo paths"
-  cd ${GIT_ROOT_DIR}
+  TEST_NAME="Check Repo Paths"
+  print_header ${TEST_NAME}
+  cd ${GIT_ROOT_DIR}/etl
   for MY_FILE in `find . ! -type d -name '*ktr' -or -name '*kjb'`
   do
     FOLDER=$(dirname ${MY_FILE})
+    # get rid of the `.` prefix
+    FOLDER=`echo ${FOLDER} | cut -c 2-`
     REPO_FOLDER=$(grep -m 1 '<directory>' $MY_FILE | \
-      sed -e 's| *<directory>&#x2f;||g' \
-          -e 's| *<directory>/||g' \
+      sed -e 's| *<directory>||g' \
           -e 's|&#x2f;|/|g' \
           -e 's|</directory>.*||g')
-    if [[ ! "${FOLDER}" == "./${REPO_FOLDER}" ]]; then
-      echo "${MY_FILE} -> ${FOLDER} -> ${REPO_FOLDER}"
+    if [[ ! "${FOLDER}" = "${REPO_FOLDER}" ]]; then
+      echo "${MY_FILE} -> FILESYSTEM: ${FOLDER} -> REPO: ${REPO_FOLDER}"
       STAT=1
     fi
   done
@@ -215,6 +217,9 @@ if [ ${STAT} -gt 0 ]; then
   exit 1
 fi
 
+# Check for hardcoded IPs in PDI files: jobs, transformation, kdb files
+
+# Check for hardcoded domain names in PDI files
 
 
 # supported extensions:
