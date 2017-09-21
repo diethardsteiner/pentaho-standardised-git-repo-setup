@@ -50,7 +50,7 @@ function check_for_non_ascii_filenames {
     print_failed ${TEST_NAME}
     echo -e "\e[93mPlease only use ASCII characters for filenames!"
     echo -e "Following filenames contain non ASCII characters:"
-    echo -e "${NON_ASCII_FILE_NAMES}"
+    echo -e "${NON_ASCII_FILE_NAMES}\n"
     STAT=1
   else
     print_passed ${TEST_NAME}
@@ -93,7 +93,7 @@ function check_new_pdi_files_meet_naming_convention {
     echo -e " - tr_filename.ktr"
     echo -e " - jb_filename.kjb\e[39m"
     echo -e "\e[93mThe following filename(s) do not meet filename conventions:\e[39m"
-    echo -e ${UNACCPETABLE_NEW_PDI_FILES}
+    echo -e “${UNACCPETABLE_NEW_PDI_FILES}\n”
     STAT=1
   else
     print_passed ${TEST_NAME}
@@ -104,34 +104,96 @@ function check_new_pdi_files_meet_naming_convention {
 # Check for jobs and transformations whose repository path does not match their filesystem path
 # applies to file-repo setup only
 function check_repo_path {
-  
-  TEST_NAME="Check Repo Paths"
+ 
+  TEST_NAME=“Check Repo Paths”
   print_header ${TEST_NAME}
   cd ${GIT_ROOT_DIR}/etl
-  for MY_FILE in `find . ! -type d -name '*ktr' -or -name '*kjb'`
+ 
+  COUNTER=0
+  for MY_FILE in `find . ! -type d -name ‘*ktr’ -or -name ‘*kjb’`
   do
     FOLDER=$(dirname ${MY_FILE})
-    # get rid of the `.` prefix
+    # get rid of the `./etl/` starting bit
     FOLDER=`echo ${FOLDER} | cut -c 2-`
-    REPO_FOLDER=$(grep -m 1 '<directory>' $MY_FILE | \
-      sed -e 's| *<directory>||g' \
-          -e 's|&#x2f;|/|g' \
-          -e 's|</directory>.*||g')
-    if [[ ! "${FOLDER}" = "${REPO_FOLDER}" ]]; then
-      echo "${MY_FILE} -> FILESYSTEM: ${FOLDER} -> REPO: ${REPO_FOLDER}"
+    REPO_FOLDER=$(grep -m 1 ‘<directory>’ $MY_FILE | \
+      sed -e ‘s| *<directory>||g’ \
+          -e ‘s|&#x2f;|/|g’ \
+          -e ‘s|</directory>.*||g’)
+    if [[ ! “${FOLDER}” = “${REPO_FOLDER}” ]]; then
+      echo “${MY_FILE} -> FILESYSTEM: ${FOLDER} -> REPO: ${REPO_FOLDER}”
       STAT=1
+      COUNTER=COUNTER+1
     fi
   done
-  
-  if [ ${STAT} -gt 0 ]; then
+ 
+  if [ ${COUNTER} -gt 0 ]; then
     print_failed ${TEST_NAME}
   else
     print_passed ${TEST_NAME}
   fi
-  
+ 
   return ${STAT}
 }
-
+ 
+ 
+# Check for PDI files with hardcoded IP addresses
+function check_hardcoded_ip {
+ 
+  TEST_NAME=“Check Hardcoded IP”
+  print_header ${TEST_NAME}
+  cd ${GIT_ROOT_DIR}/etl
+ 
+  NUMBER_OF_FILES_WITH_HARDCODED_IP=0
+ 
+  FILES_WITH_HARDCODED_IP=$(grep -Erl “[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}” .  || (echo “”))
+  # if the list is not empty ...
+  if [ ! -z “${FILES_WITH_HARDCODED_IP}” ]; then
+    NUMBER_OF_FILES_WITH_HARDCODED_IP=$(echo ${FILES_WITH_HARDCODED_IP} | wc -w)
+  fi
+ 
+  echo “Number of unacceptable new PDI file names: ${NUMBER_OF_FILES_WITH_HARDCODED_IP}”
+ 
+  # error message if unacceptable files present
+  if [ ${NUMBER_OF_FILES_WITH_HARDCODED_IP} -gt 0 ]; then
+    print_failed ${TEST_NAME}
+    echo -e “\e[93mThe following filename(s) do have hard code IP addresses:\e[39m”
+    echo -e “${FILES_WITH_HARDCODED_IP}\n”
+    STAT=1
+  else
+    print_passed ${TEST_NAME}
+  fi
+  return ${STAT}
+}
+ 
+# Check for PDI files with hardcoded domain name
+function check_hard_coded_domain_name {
+ 
+  TEST_NAME=“Check Domain Name”
+  print_header ${TEST_NAME}
+  cd ${GIT_ROOT_DIR}/etl
+ 
+  FILES_WITH_HARDCODED_DOMAIN_NAME=0
+ 
+  FILES_WITH_HARDCODED_DOMAIN_NAME=$(grep -Erl “(https)|(http)|(wwww)” .  || (echo “”))
+  # if the list is not empty ...
+  if [ ! -z “${FILES_WITH_HARDCODED_DOMAIN_NAME}” ]; then
+    NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME=$(echo ${FILES_WITH_HARDCODED_DOMAIN_NAME} | wc -w)
+  fi
+ 
+  echo “Number of unacceptable new PDI file names: ${NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME}”
+ 
+  # error message if unacceptable files present
+  if [ ${NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME} -gt 0 ]; then
+    print_failed ${TEST_NAME}
+    echo -e “\e[93mThe following filename(s) do have hard code Domain Names:\e[39m”
+    echo -e “${FILES_WITH_HARDCODED_DOMAIN_NAME}\n”
+    STAT=1
+  else
+    print_passed ${TEST_NAME}
+  fi
+  return ${STAT}
+}
+ 
 # Check new files matches accepted file types
 function check_supported_file_type {
   
@@ -165,7 +227,7 @@ function check_supported_file_type {
   if [ ${NUMBER_OF_NOT_SUPPORTED_NEW_FILES} -gt 0 ]; then
     print_failed ${TEST_NAME}
     echo -e "\e[93mThe following filename(s) do not match the list of accepted file extensions:\e[39m"
-    echo -e ${NOT_SUPPORTED_NEW_FILES}
+    echo -e “${NOT_SUPPORTED_NEW_FILES}\n”
     STAT=1
   else
     print_passed ${TEST_NAME}
@@ -205,6 +267,8 @@ else
   check_supported_file_type
   check_for_non_ascii_filenames
   check_new_pdi_files_meet_naming_convention
+  check_hard_coded_ip_address
+  check_hard_coded_domain_name 
   if [ ${IS_REPO_BASED} = "Y" ]; then
     check_repo_path
   fi
@@ -216,10 +280,6 @@ if [ ${STAT} -gt 0 ]; then
   echo ""
   exit 1
 fi
-
-# Check for hardcoded IPs in PDI files: jobs, transformation, kdb files
-
-# Check for hardcoded domain names in PDI files
 
 
 # supported extensions:
