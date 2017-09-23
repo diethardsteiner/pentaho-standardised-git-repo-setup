@@ -110,15 +110,15 @@ function check_repo_path {
   cd ${GIT_ROOT_DIR}/etl
  
   COUNTER=0
-  for MY_FILE in `find . ! -type d -name ‘*ktr’ -or -name ‘*kjb’`
+  for MY_FILE in `find . ! -type d -name '*ktr' -or -name '*kjb'`
   do
     FOLDER=$(dirname ${MY_FILE})
     # get rid of the `./etl/` starting bit
     FOLDER=`echo ${FOLDER} | cut -c 2-`
-    REPO_FOLDER=$(grep -m 1 ‘<directory>’ $MY_FILE | \
-      sed -e ‘s| *<directory>||g’ \
-          -e ‘s|&#x2f;|/|g’ \
-          -e ‘s|</directory>.*||g’)
+    REPO_FOLDER=$(grep -m 1 '<directory>' $MY_FILE | \
+      sed -e 's| *<directory>||g' \
+          -e 's|&#x2f;|/|g' \
+          -e 's|</directory>.*||g')
     if [[ ! “${FOLDER}” = “${REPO_FOLDER}” ]]; then
       echo “${MY_FILE} -> FILESYSTEM: ${FOLDER} -> REPO: ${REPO_FOLDER}”
       STAT=1

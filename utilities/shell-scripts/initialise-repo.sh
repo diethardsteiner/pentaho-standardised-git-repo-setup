@@ -275,24 +275,30 @@ function project_code {
 
     echo "Creating and pointing to default git branch"
     git checkout -b dev
+    
     echo "Creating basic folder structure ..."
-    mkdir etl mdx mondrian-schemas pentaho-solutions sql
+    mkdir pdi pentaho-server prd
+    cd pentaho-server
+    mkdir connections metadata-models mondrian-schemas sql
+    cd ..
+    mkdir -p sql/ddl
+
     echo "Creating basic README file ..."
     echo "Documentation can be found in the dedicated documentation Git repo called ${PROJECT_NAME}-documentation" > README.md
     if [ ${PDI_STORAGE_TYPE} = "file-repo" ]; then
       echo "Adding kettle db connection files ..."
-      cp -r ${SHELL_DIR}/artefacts/pdi/repo/*.kdb etl
+      cp -r ${SHELL_DIR}/artefacts/pdi/repo/*.kdb pdi
     fi
     if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
       # nothing to do: shared.xml is part of .kettle, which lives in the config
       echo ""
     fi
     echo "Adding pdi modules as a git submodule ..."
-    git submodule add -b master ${MODULES_GIT_REPO_URL} etl/modules
+    git submodule add -b master ${MODULES_GIT_REPO_URL} pdi/modules
     git submodule init
     git submodule update
     echo "Setting branch for submodule ..."
-    cd etl/modules
+    cd pdi/modules
     git checkout master
     cd ../..
     echo "Committing new files ..."
@@ -332,7 +338,7 @@ function project_config {
       -i ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
     
     echo "Creating basic folder structure ..."
-    mkdir shell-scripts properties
+    mkdir shell-scripts properties test-data
     echo "Adding essential shell files ..."
     cp ${SHELL_DIR}/artefacts/project-config/*.sh ${PROJECT_CONFIG_DIR}/shell-scripts
     mv ${PROJECT_CONFIG_DIR}/shell-scripts/run_jb_name.sh ${PROJECT_CONFIG_DIR}/shell-scripts/run_jb_${PROJECT_NAME}_master.sh
@@ -370,7 +376,7 @@ function standalone_project_config {
   if [ ${PDI_STORAGE_TYPE} = 'file-repo' ]; then
     add_pdi_repository \
       "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/.kettle/repositories.xml" \
-      "${BASE_DIR}/${PROJECT_NAME}-code/etl"
+      "${BASE_DIR}/${PROJECT_NAME}-code/pdi"
   fi
   if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
     cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
@@ -410,7 +416,7 @@ function standalone_project_config {
 #     echo "Creating Git Branch ${PDI_ENV} ..."
 #     git checkout -b ${PDI_ENV}
 #     echo "Creating basic folder structure ..."
-#     mkdir etl mdx mondrian-schemas pentaho-solutions sql
+#     mkdir pdi mdx mondrian-schemas pentaho-solutions sql
 #     echo "Creating basic README file ..."
 #     echo "Common code for ${PDI_ENV} environment. Find documentation in dedicated docu repo." > ${COMMON_CODE_DIR}/README.md
 #   fi
@@ -435,7 +441,8 @@ function common_config {
     mkdir ${COMMON_CONFIG_DIR}
     cd ${COMMON_CONFIG_DIR}
     echo "Creating basic folder structure ..."
-    mkdir shell-scripts
+    mkdir .kettle shell-scripts
+
     echo "Initialising Git Repo ..."
     git init .
     echo "Adding Git hooks ..."
@@ -448,14 +455,15 @@ function common_config {
       -i ${COMMON_CONFIG_DIR}/.git/hooks/pre-commit
 
     # add_kettle_artefacts
+
     echo "Adding .kettle files ..."
-    mkdir .kettle
+    
     cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties .kettle
     if [ ${PDI_STORAGE_TYPE} = "file-repo" ]; then
       # cp ${SHELL_DIR}/artefacts/pdi/.kettle/repositories.xml .kettle
       add_pdi_repository \
         "${COMMON_CONFIG_DIR}/.kettle/repositories.xml" \
-        "${BASE_DIR}/${PROJECT_NAME}-code/etl"
+        "${BASE_DIR}/${PROJECT_NAME}-code/pdi"
     fi
     if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
       cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
