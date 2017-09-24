@@ -277,31 +277,39 @@ function project_code {
     git checkout -b dev
     
     echo "Creating basic folder structure ..."
-    mkdir pdi pentaho-server prd
-    cd pentaho-server
-    mkdir connections metadata-models mondrian-schemas sql
-    cd ..
+    mkdir pdi
+    mkdir -p pentaho-server/metadata-models 
+    mkdir -p pentaho-server/mondrian-schemas
+    mkdir prd
     mkdir -p sql/ddl
 
     echo "Creating basic README file ..."
     echo "Documentation can be found in the dedicated documentation Git repo called ${PROJECT_NAME}-documentation" > README.md
+
     if [ ${PDI_STORAGE_TYPE} = "file-repo" ]; then
       echo "Adding kettle db connection files ..."
       cp -r ${SHELL_DIR}/artefacts/pdi/repo/*.kdb pdi
     fi
+    
     if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
-      # nothing to do: shared.xml is part of .kettle, which lives in the config
+      # nothing to do: shared.xml is part of .kettle, which lives in the config repo
       echo ""
     fi
+    
     echo "Adding pdi modules as a git submodule ..."
+    
     git submodule add -b master ${MODULES_GIT_REPO_URL} pdi/modules
     git submodule init
     git submodule update
+    
     echo "Setting branch for submodule ..."
+    
     cd pdi/modules
     git checkout master
     cd ../..
+    
     echo "Committing new files ..."
+    
     git add --all
     git commit -am "initial commit"
   fi
@@ -338,14 +346,29 @@ function project_config {
       -i ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
     
     echo "Creating basic folder structure ..."
-    mkdir shell-scripts properties test-data
+    mkdir -p pdi/properties 
+    mkdir -p pdi/shell-scripts 
+    mkdir -p pdi/test-data
+    
     echo "Adding essential shell files ..."
-    cp ${SHELL_DIR}/artefacts/project-config/*.sh ${PROJECT_CONFIG_DIR}/shell-scripts
-    mv ${PROJECT_CONFIG_DIR}/shell-scripts/run_jb_name.sh ${PROJECT_CONFIG_DIR}/shell-scripts/run_jb_${PROJECT_NAME}_master.sh
+    
+    cp ${SHELL_DIR}/artefacts/project-config/*.sh \
+       ${PROJECT_CONFIG_DIR}/pdi/shell-scripts
+    
+    mv ${PROJECT_CONFIG_DIR}/shell-scripts/run_jb_name.sh \
+       ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/run_jb_${PROJECT_NAME}_master.sh
+    
     echo "Adding essential properties files ..."
-    cp ${SHELL_DIR}/artefacts/project-config/*.properties ${PROJECT_CONFIG_DIR}/properties 
-    mv ${PROJECT_CONFIG_DIR}/properties/project.properties ${PROJECT_CONFIG_DIR}/properties/${PROJECT_NAME}.properties
-    touch ${PROJECT_CONFIG_DIR}/properties/jb_${PROJECT_NAME}_master.properties 
+    
+    cp ${SHELL_DIR}/artefacts/project-config/*.properties \
+       ${PROJECT_CONFIG_DIR}/pdi/properties 
+    
+    # rename project properies file
+    mv ${PROJECT_CONFIG_DIR}/pdi/properties/project.properties \
+       ${PROJECT_CONFIG_DIR}/pdi/properties/${PROJECT_NAME}.properties
+    
+    touch ${PROJECT_CONFIG_DIR}/pdi/properties/jb_${PROJECT_NAME}_master.properties 
+    
     echo "Creating basic README file ..."
     echo "Project specific configuration for ${PDI_ENV} environment." > ${PROJECT_CONFIG_DIR}/README.md  
   fi
@@ -363,23 +386,34 @@ function standalone_project_config {
     echo "exiting ..."
     exit 1
   fi
+  
   project_config
+
   echo "Adding essential shell files ..."
-  cp ${SHELL_DIR}/artefacts/common-config/set-env-variables.sh ${PROJECT_CONFIG_DIR}/shell-scripts
+  
+  cp ${SHELL_DIR}/artefacts/common-config/set-env-variables.sh \
+     ${PROJECT_CONFIG_DIR}/pdi/shell-scripts
+  
   perl -0777 \
     -pe "s@\{\{ KETTLE_HOME \}\}@${PROJECT_CONFIG_DIR}@igs" \
-    -i ${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh 
+    -i ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh 
+
   # add_kettle_artefacts
   echo "Adding .kettle files for ${PDI_STORAGE_TYPE} ..."
   mkdir .kettle
-  cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties .kettle
+  cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties \
+     pdi/.kettle
+
   if [ ${PDI_STORAGE_TYPE} = 'file-repo' ]; then
     add_pdi_repository \
-      "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/.kettle/repositories.xml" \
+      "${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}/pdi/.kettle/repositories.xml" \
       "${BASE_DIR}/${PROJECT_NAME}-code/pdi"
   fi
+
   if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
-    cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
+    
+    cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml \
+       pdi/.kettle
   fi
 
   echo ""
@@ -398,7 +432,7 @@ function standalone_project_config {
   echo "You can start PDI Spoon now if working on a dev machine."
   echo ""
 
-  source ${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh
+  source ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh
 
 }
 
@@ -466,14 +500,19 @@ function common_config {
         "${BASE_DIR}/${PROJECT_NAME}-code/pdi"
     fi
     if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
-      cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml .kettle
+      cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml \
+         pdi/.kettle
     fi
     # ---
     echo "Adding essential shell files ..."
-    cp ${SHELL_DIR}/artefacts/common-config/set-env-variables.sh ${COMMON_CONFIG_DIR}/shell-scripts
+
+    cp ${SHELL_DIR}/artefacts/common-config/set-env-variables.sh \
+       ${COMMON_CONFIG_DIR}/pdi/shell-scripts
+    
     perl -0777 \
       -pe "s@\{\{ KETTLE_HOME \}\}@${COMMON_CONFIG_DIR}@igs" \
-      -i ${COMMON_CONFIG_DIR}/shell-scripts/set-env-variables.sh 
+      -i ${COMMON_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh 
+
     echo "Creating basic README file ..."
     echo "Common configuration for ${PDI_ENV} environment." > ${COMMON_CONFIG_DIR}/README.md
 
@@ -492,7 +531,7 @@ function common_config {
     echo "You can start PDI Spoon now if working on a dev machine."
     echo ""
 
-    source ${COMMON_CONFIG_DIR}/shell-scripts/set-env-variables.sh
+    source ${COMMON_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh
   fi
 }
 
