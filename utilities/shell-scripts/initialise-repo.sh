@@ -278,9 +278,10 @@ function project_code {
     
     echo "Creating basic folder structure ..."
     mkdir pdi
-    mkdir -p pentaho-server/metadata-models 
-    mkdir -p pentaho-server/mondrian-schemas
+    mkdir -p pentaho-server/metadata 
+    mkdir -p pentaho-server/mondrian
     mkdir prd
+    mkdir shell-scripts
     mkdir -p sql/ddl
 
     echo "Creating basic README file ..."
@@ -346,6 +347,8 @@ function project_config {
       -i ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
     
     echo "Creating basic folder structure ..."
+    
+    mkdir -p pdi/metadata
     mkdir -p pdi/properties 
     mkdir -p pdi/shell-scripts 
     mkdir -p pdi/test-data
