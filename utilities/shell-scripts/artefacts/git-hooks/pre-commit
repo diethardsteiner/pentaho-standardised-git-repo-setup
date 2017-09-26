@@ -205,12 +205,12 @@ function check_supported_file_type {
   if [ ${IS_CONFIG} = “Y” ]; then
     NOT_SUPPORTED_NEW_FILES=$(git diff —cached —name-only |
       # non-accepted file types
-      grep —invert-match -E “md$|properties$|sh$”||
+      grep —invert-match -E “md$|properties$|sh$|json$|xml$|txt$|csv$”||
       (echo “”))
    else
      NOT_SUPPORTED_NEW_FILES=$(git diff —cached —name-only |
       # non-accepted file types
-      grep —invert-match -E “cda$|cdfde$|css$|csv$|html$|jpeg$|js$|json$|kjb$|ktr$|md$|png$|prpt$|prpti$|svg$|txt$|wcdf$|xanalyzer$|xmi$|xml”||
+      grep —invert-match -E “cda$|cdfde$|css$|csv$|html$|jpeg$|js$|json$|kjb$|ktr$|md$|png$|prpt$|prpti$|sh$|svg$|txt$|wcdf$|xanalyzer$|xmi$|xml”||
       (echo “”))
     fi
   # if the list is not empty ...
@@ -395,6 +395,7 @@ fi
 # png
 # prpt
 # prpti
+# sh
 # svg
 # txt
 # wcdf
@@ -402,6 +403,10 @@ fi
 # xmi
 # xml
  
+# csv
+# json
 # properties
 # sh
+# txt
+# xml
  

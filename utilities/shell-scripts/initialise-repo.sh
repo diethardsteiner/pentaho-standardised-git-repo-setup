@@ -350,8 +350,10 @@ function project_config {
     
     mkdir -p pdi/metadata
     mkdir -p pdi/properties 
+    mkdir -p pdi/schedules
     mkdir -p pdi/shell-scripts 
     mkdir -p pdi/test-data
+    mkdir -p pentaho-server/connections
     
     echo "Adding essential shell files ..."
     
