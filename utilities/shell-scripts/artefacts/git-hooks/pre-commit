@@ -9,7 +9,7 @@ IS_REPO_BASED={{ IS_REPO_BASED }}
 TEST_FAILED=" - Test - [\e[31m FAILED\e[39m ]"
 TEST_PASSED=" - Test - [\e[32m PASSED\e[39m ]"
 GIT_ROOT_DIR=`git rev-parse --show-toplevel`
-STAT=0
+declare -i STAT=0
 
 # color scales: http://misc.flogisoft.com/bash/tip_colors_and_formatting
 
@@ -33,7 +33,7 @@ function check_for_non_ascii_filenames {
   TEST_NAME=“ASCII Characters Filename Check”
   print_header ${TEST_NAME}
  
-  NUMBER_OF_NON_ASCII_FILE_NAMES=0
+  declare -i NUMBER_OF_NON_ASCII_FILE_NAMES=0
  
   # printable range starts at space character and ends with tilde
   # Note that the brackets around the tr range are required for portability
@@ -65,7 +65,7 @@ function check_new_pdi_files_meet_naming_convention {
   TEST_NAME=“Naming Convention”
   print_header ${TEST_NAME}
  
-  NUMBER_OF_UNACCEPTABLE_PDI_FILES=0
+  declare -i NUMBER_OF_UNACCEPTABLE_PDI_FILES=0
  
   # Get a list of new files to be pushed
   # Check which transformations don’t match with the following patterns:
@@ -103,7 +103,7 @@ function check_repo_path {
   print_header ${TEST_NAME}
   cd ${GIT_ROOT_DIR}/etl
  
-  COUNTER=0
+  declare -i COUNTER=0
   for MY_FILE in `find . ! -type d -name ‘*ktr’ -or -name ‘*kjb’`
   do
     FOLDER=$(dirname ${MY_FILE})
@@ -139,7 +139,7 @@ function check_hardcoded_ip {
   cd ${GIT_ROOT_DIR}/etl
  
   FILES_WITH_HARDCODED_IP=“”
-  NUMBER_OF_FILES_WITH_HARDCODED_IP=0
+  declare -i NUMBER_OF_FILES_WITH_HARDCODED_IP=0
  
   FILES_WITH_HARDCODED_IP=$(grep -Erl “[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}\.[0-9]{2,3}” .  || (echo “”))
   # if the list is not empty ...
@@ -169,7 +169,7 @@ function check_hard_coded_domain_name {
   cd ${GIT_ROOT_DIR}/etl
  
   FILES_WITH_HARDCODED_DOMAIN_NAME=“”
-  NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME=0
+  declare -i NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME=0
  
   FILES_WITH_HARDCODED_DOMAIN_NAME=$(grep -Erl “(https&#x3a;&#x2f;)|(http&#x3a;&#x2f;)|(www)” .  || (echo “”))
   # if the list is not empty ...
@@ -197,7 +197,7 @@ function check_supported_file_type {
  
   TEST_NAME=“Accepted File Type”
   print_header ${TEST_NAME}
-  NUMBER_OF_NOT_SUPPORTED_NEW_FILES=0
+  declare -i NUMBER_OF_NOT_SUPPORTED_NEW_FILES=0
  
   # Get a list of new files to be pushed
   # Check if they match a list of accepted file extensions
@@ -237,7 +237,7 @@ function check_supported_branch_name {
   TEST_NAME=“supported Branch Name”
   print_header ${TEST_NAME}
  
-  VALID_BRANCH_NAME_COUNT=0
+  declare -i VALID_BRANCH_NAME_COUNT=0
  
   BRANCH_NAME=`git branch | while read STAR BRANCH; do echo $BRANCH; done`
  
