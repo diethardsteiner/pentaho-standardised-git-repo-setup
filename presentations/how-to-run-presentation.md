@@ -33,14 +33,14 @@ export PATH=$PATH:/usr/local/texlive/2017/bin/x86_64-linux
 To get the HTML output run:
 
 ```
-madoko -v ./pcm2107.md --odir=/home/dsteiner/Documents/pcm2017-presentatation-html
+madoko -v ./pcm2017.md --odir=/home/dsteiner/Documents/pcm2017-presentatation-html
 ```
 
 
 To generate a PDF version run:
 
 ```
-madoko --pdf -vv ./pcm2107.md --odir=/home/dsteiner/Documents/pcm2017-presentatation-pdf
+madoko --pdf -vv ./pcm2017.md --odir=/home/dsteiner/Documents/pcm2017-presentatation-pdf
 ```
 
 # Fix code block font color
