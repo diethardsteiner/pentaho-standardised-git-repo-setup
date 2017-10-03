@@ -196,8 +196,9 @@ function pdi_module {
     cd ${PDI_MODULES_DIR}
     echo "Initialising Git Repo ..."
     git init .
-    echo "Adding Git hooks ..."
-    cp ${SHELL_DIR}/artefacts/git-hooks/* ${PDI_MODULES_DIR}/.git/hooks
+    # git hooks wont work here since the directory structure is different
+    # echo "Adding Git hooks ..."
+    # cp ${SHELL_DIR}/artefacts/git-hooks/* ${PDI_MODULES_DIR}/.git/hooks
     # we have to create a file so that the master branch is created
     echo "creatng README file ..."
     touch README.md
@@ -234,6 +235,9 @@ function pdi_module_repo {
     # the next command is only required in older git versions to get the content for the submodule
     git submodule init
     git submodule update
+
+    # enable pre-commit hook
+    chmod 700 ${PDI_MODULES_REPO_DIR}/.git/hooks/pre-commit
   fi 
 }
 
@@ -313,6 +317,10 @@ function project_code {
     
     git add --all
     git commit -am "initial commit"
+
+    # enable pre-commit hook
+    chmod 700 ${PROJECT_CODE_DIR}/.git/hooks/pre-commit
+
   fi
 }
 
@@ -360,7 +368,7 @@ function project_config {
     cp ${SHELL_DIR}/artefacts/project-config/*.sh \
        ${PROJECT_CONFIG_DIR}/pdi/shell-scripts
     
-    mv ${PROJECT_CONFIG_DIR}/shell-scripts/run_jb_name.sh \
+    mv ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/run_jb_name.sh \
        ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/run_jb_${PROJECT_NAME}_master.sh
     
     echo "Adding essential properties files ..."
@@ -374,8 +382,15 @@ function project_config {
     
     touch ${PROJECT_CONFIG_DIR}/pdi/properties/jb_${PROJECT_NAME}_master.properties 
     
+    # copy deployment scripts across
+    # [OPEN]
+
     echo "Creating basic README file ..."
     echo "Project specific configuration for ${PDI_ENV} environment." > ${PROJECT_CONFIG_DIR}/README.md  
+
+    # enable pre-commit hook
+    chmod 700 ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
+
   fi
 }
 
@@ -517,6 +532,11 @@ function common_config {
     perl -0777 \
       -pe "s@\{\{ KETTLE_HOME \}\}@${COMMON_CONFIG_DIR}@igs" \
       -i ${COMMON_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh 
+
+
+    # enable pre-commit hook
+    chmod 700 ${COMMON_CONFIG_DIR}/.git/hooks/pre-commit
+
 
     echo "Creating basic README file ..."
     echo "Common configuration for ${PDI_ENV} environment." > ${COMMON_CONFIG_DIR}/README.md
