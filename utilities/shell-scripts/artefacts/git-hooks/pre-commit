@@ -27,6 +27,23 @@ function print_passed {
 }
 
 
+
+
+# it would we good to have a switch here in case we have to check a legacy project
+# in which case we have to go through all files, not just the new ones
+if [ GIT_HOOKS_CHECKS_NEW_FILES_ONLY = "Y" ]; then
+  FILE_LIST=`git diff --cached --name-only`
+else
+  FILE_LIST=`git ls-files`
+  # FILE_LIST=`find . -path ./.git -prune -o -print`
+fi
+
+
+
+#######################################
+## FILE NAME CHECKS
+#######################################
+
 # Check for non ASCII filenames
 function check_for_non_ascii_filenames {
  
@@ -39,7 +56,7 @@ function check_for_non_ascii_filenames {
   # Note that the brackets around the tr range are required for portability
   # to Solari's /usr/bin/tr. The square bracket bytes happen to fall in
   # the designated space
-  NON_ASCII_FILE_NAMES=`git diff --cached --name-only | LC_ALL=C tr -d '[ -~]\0'`
+  NON_ASCII_FILE_NAMES=`echo ${FILE_LIST} | LC_ALL=C tr -d '[ -~]\0'`
   NUMBER_OF_NON_ASCII_FILE_NAMES=`echo ${NON_ASCII_FILE_NAMES} | wc -w`
  
   
@@ -62,7 +79,7 @@ function check_for_non_ascii_filenames {
 
 function check_for_paths_with_whitespaces  {
 
-  TEST_NAME="Check for whitespaces in file paths"
+  TEST_NAME="Whitespaces in File Paths"
   print_header ${TEST_NAME}
 
   declare -i NUMBER_OF_PATHS_WITH_WHITESPACES=0
@@ -96,7 +113,7 @@ function check_new_pdi_files_meet_naming_convention {
   # Get a list of new files to be pushed
   # Check which transformations don't match with the following patterns:
   # jb_filename.kjb, tr_filename.ktr
-  UNACCPETABLE_NEW_PDI_FILES=$( git diff --cached --name-only | grep -Ev "(.*/)?tr\_[a-z0-9\_]+\.ktr$|(.*/)?jb\_[a-z0-9\_]+\.kjb$" | grep -E "ktr$|kjb$"|| (echo ""))
+  UNACCPETABLE_NEW_PDI_FILES=$( echo ${FILE_LIST} | grep -Ev "(.*/)?tr\_[a-z0-9\_]+\.ktr$|(.*/)?jb\_[a-z0-9\_]+\.kjb$" | grep -E "ktr$|kjb$"|| (echo ""))
    
   # if the list is not empty ...
   if [ ! -z "${UNACCPETABLE_NEW_PDI_FILES}" ]; then
@@ -120,7 +137,59 @@ function check_new_pdi_files_meet_naming_convention {
   fi
   return ${STAT}
 }
+
+
  
+# Check new files matches accepted file types
+function check_supported_file_type {
+ 
+  TEST_NAME="Accepted File Type"
+  print_header ${TEST_NAME}
+  declare -i NUMBER_OF_NOT_SUPPORTED_NEW_FILES=0
+ 
+  # Get a list of new files to be pushed
+  # Check if they match a list of accepted file extensions
+  # Keep non matching ones
+  if [ ${IS_CONFIG} = "Y" ]; then
+    NOT_SUPPORTED_NEW_FILES=$(echo ${FILE_LIST} |
+      # non-accepted file types
+      grep --invert-match -E "md$|properties$|sh$|json$|xml$|txt$|csv$"||
+      (echo ""))
+   else
+     NOT_SUPPORTED_NEW_FILES=$(echo ${FILE_LIST} |
+      # non-accepted file types
+      grep --invert-match -E "cda$|cdfde$|css$|csv$|html$|jpeg$|js$|json$|kdb$|kjb$|ktr$|md$|png$|prpt$|prpti$|sh$|svg$|txt$|wcdf$|xanalyzer$|xmi$|xml$"||
+      (echo ""))
+    fi
+  # if the list is not empty ...
+  if [ ! -z "${NOT_SUPPORTED_NEW_FILES}" ]; then
+    NUMBER_OF_NOT_SUPPORTED_NEW_FILES=$(echo $NOT_SUPPORTED_NEW_FILES | wc -w)
+  fi
+ 
+  echo "Number of files with not supported file types: ${NUMBER_OF_NOT_SUPPORTED_NEW_FILES}"
+ 
+  # error message if unacceptable files present
+  if [ ${NUMBER_OF_NOT_SUPPORTED_NEW_FILES} -gt 0 ]; then
+    print_failed ${TEST_NAME}
+    echo -e "\e[93mThe following filename(s) do not match the list of accepted file extensions:\e[39m"
+    echo -e "${NOT_SUPPORTED_NEW_FILES}\n"
+    STAT=1
+  else
+    print_passed ${TEST_NAME}
+  fi
+  return ${STAT}
+}
+
+
+function check_filenames_are_lower_case {
+
+}
+
+
+#######################################
+## CONTENT CHECKS
+#######################################
+
 # Check for jobs and transformations whose repository path does not match their filesystem path
 # applies to file-repo setup only
 function check_repo_path {
@@ -229,45 +298,73 @@ function check_hard_coded_domain_name {
 }
  
  
-# Check new files matches accepted file types
-function check_supported_file_type {
+# Check connection references do match a predefined list
+function check_referenced_database_are_part_of_the_project {
  
-  TEST_NAME="Accepted File Type"
+  TEST_NAME="Check Referenced Databases Are Part of the Project"
   print_header ${TEST_NAME}
-  declare -i NUMBER_OF_NOT_SUPPORTED_NEW_FILES=0
+  cd ${GIT_ROOT_DIR}/pdi
  
-  # Get a list of new files to be pushed
-  # Check if they match a list of accepted file extensions
-  # Keep non matching ones
-  if [ ${IS_CONFIG} = "Y" ]; then
-    NOT_SUPPORTED_NEW_FILES=$(git diff --cached --name-only |
-      # non-accepted file types
-      grep --invert-match -E "md$|properties$|sh$|json$|xml$|txt$|csv$"||
-      (echo ""))
-   else
-     NOT_SUPPORTED_NEW_FILES=$(git diff --cached --name-only |
-      # non-accepted file types
-      grep --invert-match -E "cda$|cdfde$|css$|csv$|html$|jpeg$|js$|json$|kdb$|kjb$|ktr$|md$|png$|prpt$|prpti$|sh$|svg$|txt$|wcdf$|xanalyzer$|xmi$|xml"||
-      (echo ""))
+  # get connection references that do not match a predefined list
+  # grep -Er ".*<connection>.*?</connection>.*" .  | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -vE "hive_generic|impala_generic|mysql_process_control"
+  # grep -Er ".*<connection>.*?</connection>.*" .
+ 
+  FILES_WITH_DB_CONNECTION_REFERENCE=$(grep -Erl ".*<connection>.*?</connection>.*" --include="*.kjb" --include="*.ktr" --include="*.kdb" .  || (echo ""))
+ 
+  declare -i FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER=0
+  FILES_WITH_INVALID_DB_CONNECTION_REFERENCE=()
+
+  # change internal file separator so that spaces in file and folder names
+  # dont cause havoc
+  SAVEIFS=${IFS}
+  IFS=$(echo -en "\n\b")
+ 
+  for FILE_WITH_DB_CONNECTION_REFERENCE in ${FILES_WITH_DB_CONNECTION_REFERENCE}
+  do
+    # allowed database names specified at the end here - should be externalised in the long term
+    LOCAL_COUNTER=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "" | grep -cvE "hive_generic|impala_generic|mysql_process_control")
+    if [ ${LOCAL_COUNTER} -gt 0 ]; then
+      FILES_WITH_INVALID_DB_CONNECTION_REFERENCE+=(${FILE_WITH_DB_CONNECTION_REFERENCE})
+      FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER+=1
+ 
+      echo "${FILE_WITH_DB_CONNECTION_REFERENCE} has a non-project specific connection: "
+      grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "" | grep -vE "hive_generic|impala_generic|mysql_process_control"
+ 
     fi
-  # if the list is not empty ...
-  if [ ! -z "${NOT_SUPPORTED_NEW_FILES}" ]; then
-    NUMBER_OF_NOT_SUPPORTED_NEW_FILES=$(echo $NOT_SUPPORTED_NEW_FILES | wc -w)
-  fi
+  done
+
+  # restore IFS
+  IFS=${SAVEIFS}
  
-  echo "Number of files with not supported file types: ${NUMBER_OF_NOT_SUPPORTED_NEW_FILES}"
  
+  echo "Number of files with non-project specific database connection references: ${FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER}"
+  # echo "Number of unacceptable files: ${#FILES_WITH_INVALID_DB_CONNECTION_REFERENCE[*]}"
   # error message if unacceptable files present
-  if [ ${NUMBER_OF_NOT_SUPPORTED_NEW_FILES} -gt 0 ]; then
+  if [ ${FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER} -gt 0 ]; then
     print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following filename(s) do not match the list of accepted file extensions:\e[39m"
-    echo -e "${NOT_SUPPORTED_NEW_FILES}\n"
+    echo -e "\e[93mThe following filename(s) do have invalid DB references:\e[39m"
+ 
+ 
+    for ITEM in ${FILES_WITH_INVALID_DB_CONNECTION_REFERENCE[*]}
+    do
+      echo -e "${ITEM}"
+    done
     STAT=1
   else
     print_passed ${TEST_NAME}
   fi
   return ${STAT}
 }
+
+
+function check_parameters_and_variables_follow_naming_convention {
+
+}
+ 
+
+#######################################
+## GIT REPO CHECKS
+#######################################
  
 function check_supported_branch_name {
  
@@ -346,65 +443,11 @@ function check_defined_database_connections_are_part_of_the_project {
   fi
   return ${STAT}
 }
- 
-# Check connection references do match a predefined list
-function check_referenced_database_are_part_of_the_project {
- 
-  TEST_NAME="Check Referenced Databases Are Part of the Project"
-  print_header ${TEST_NAME}
-  cd ${GIT_ROOT_DIR}/pdi
- 
-  # get connection references that do not match a predefined list
-  # grep -Er ".*<connection>.*?</connection>.*" .  | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -vE "hive_generic|impala_generic|mysql_process_control"
-  # grep -Er ".*<connection>.*?</connection>.*" .
- 
-  FILES_WITH_DB_CONNECTION_REFERENCE=$(grep -Erl ".*<connection>.*?</connection>.*" --include="*.kjb" --include="*.ktr" --include="*.kdb" .  || (echo ""))
- 
-  declare -i FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER=0
-  FILES_WITH_INVALID_DB_CONNECTION_REFERENCE=()
 
-  # change internal file separator so that spaces in file and folder names
-  # dont cause havoc
-  SAVEIFS=${IFS}
-  IFS=$(echo -en "\n\b")
- 
-  for FILE_WITH_DB_CONNECTION_REFERENCE in ${FILES_WITH_DB_CONNECTION_REFERENCE}
-  do
-    # allowed database names specified at the end here - should be externalised in the long term
-    LOCAL_COUNTER=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "" | grep -cvE "hive_generic|impala_generic|mysql_process_control")
-    if [ ${LOCAL_COUNTER} -gt 0 ]; then
-      FILES_WITH_INVALID_DB_CONNECTION_REFERENCE+=(${FILE_WITH_DB_CONNECTION_REFERENCE})
-      FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER+=1
- 
-      echo "${FILE_WITH_DB_CONNECTION_REFERENCE} has a non-project specific connection: "
-      grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "" | grep -vE "hive_generic|impala_generic|mysql_process_control"
- 
-    fi
-  done
 
-  # restore IFS
-  IFS=${SAVEIFS}
- 
- 
-  echo "Number of files with non-project specific database connection references: ${FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER}"
-  # echo "Number of unacceptable files: ${#FILES_WITH_INVALID_DB_CONNECTION_REFERENCE[*]}"
-  # error message if unacceptable files present
-  if [ ${FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER} -gt 0 ]; then
-    print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following filename(s) do have invalid DB references:\e[39m"
- 
- 
-    for ITEM in ${FILES_WITH_INVALID_DB_CONNECTION_REFERENCE[*]}
-    do
-      echo -e "${ITEM}"
-    done
-    STAT=1
-  else
-    print_passed ${TEST_NAME}
-  fi
-  return ${STAT}
-}
- 
+#######################################
+## BUNDLE CHECKS
+#######################################
  
 if [ ${IS_CONFIG} = "Y" ]; then
   check_supported_file_type
@@ -429,41 +472,3 @@ if [ ${STAT} -gt 0 ]; then
   echo ""
   exit 1
 fi
- 
-# Check for IPs
- 
- 
-# Check for domain names within server tag
- 
-# supported extensions:
- 
-# cda
-# cdfde
-# css
-# csv
-# html
-# jpeg
-# js
-# json
-# kdb
-# kjb
-# ktr
-# md
-# png
-# prpt
-# prpti
-# sh
-# svg
-# txt
-# wcdf
-# xanalyzer
-# xmi
-# xml
- 
-# csv
-# json
-# properties
-# sh
-# txt
-# xml
- 
