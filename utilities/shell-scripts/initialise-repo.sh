@@ -281,7 +281,7 @@ function project_code {
     git checkout -b dev
     
     echo "Creating basic folder structure ..."
-    mkdir pdi
+    mkdir -p pdi/${PROJECT_NAME}
     mkdir -p pentaho-server/metadata 
     mkdir -p pentaho-server/mondrian
     mkdir prd
@@ -356,7 +356,7 @@ function project_config {
     
     echo "Creating basic folder structure ..."
     
-    mkdir -p pdi/.kettle
+    # mkdir -p pdi/.kettle -> standalone project only
     mkdir -p pdi/metadata
     mkdir -p pdi/properties 
     mkdir -p pdi/schedules
@@ -410,6 +410,8 @@ function standalone_project_config {
   
   project_config
 
+  mkdir -p pdi/.kettle
+
   echo "Adding essential shell files ..."
   
   cp ${SHELL_DIR}/artefacts/common-config/set-env-variables.sh \
@@ -433,8 +435,11 @@ function standalone_project_config {
   if [ ${PDI_STORAGE_TYPE} = "file-based" ]; then
     
     cp ${SHELL_DIR}/artefacts/pdi/.kettle/shared.xml \
-       pdi/.kettle
+       ${PROJECT_CONFIG_DIR}/pdi/.kettle
   fi
+
+  cp ${SHELL_DIR}/artefacts/pdi/.kettle/.spoonrc \
+       ${PROJECT_CONFIG_DIR}/pdi/.kettle
 
   echo ""
   echo "==============================="
@@ -535,6 +540,8 @@ function common_config {
       -pe "s@\{\{ KETTLE_HOME \}\}@${COMMON_CONFIG_DIR}/pdi@igs" \
       -i ${COMMON_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh 
 
+    cp ${SHELL_DIR}/artefacts/pdi/.kettle/.spoonrc \
+       ${COMMON_CONFIG_DIR}/pdi/.kettle
 
     # enable pre-commit hook
     chmod 700 ${COMMON_CONFIG_DIR}/.git/hooks/pre-commit
