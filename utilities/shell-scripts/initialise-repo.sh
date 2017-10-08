@@ -356,6 +356,7 @@ function project_config {
     
     echo "Creating basic folder structure ..."
     
+    mkdir -p pdi/.kettle
     mkdir -p pdi/metadata
     mkdir -p pdi/properties 
     mkdir -p pdi/schedules
@@ -415,12 +416,11 @@ function standalone_project_config {
      ${PROJECT_CONFIG_DIR}/pdi/shell-scripts
   
   perl -0777 \
-    -pe "s@\{\{ KETTLE_HOME \}\}@${PROJECT_CONFIG_DIR}@igs" \
+    -pe "s@\{\{ KETTLE_HOME \}\}@${PROJECT_CONFIG_DIR}/pdi@igs" \
     -i ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh 
 
   # add_kettle_artefacts
   echo "Adding .kettle files for ${PDI_STORAGE_TYPE} ..."
-  mkdir .kettle
   cp ${SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties \
      pdi/.kettle
 
@@ -441,10 +441,10 @@ function standalone_project_config {
   echo ""
   echo -e "\e[34m\e[47mIMPORTANT\e[0m"
   echo "Amend the following configuration file:"
-  echo "${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
+  echo "${PROJECT_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh"
   echo ""
   echo "Before using Spoon, source this file:"
-  echo "source ${PROJECT_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
+  echo "source ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh"
   echo "==============================="
   echo ""
 
@@ -495,7 +495,9 @@ function common_config {
     mkdir ${COMMON_CONFIG_DIR}
     cd ${COMMON_CONFIG_DIR}
     echo "Creating basic folder structure ..."
-    mkdir .kettle shell-scripts
+    
+    mkdir -p pdi/.kettle 
+    mkdir -p pdi/shell-scripts
 
     echo "Initialising Git Repo ..."
     git init .
@@ -530,7 +532,7 @@ function common_config {
        ${COMMON_CONFIG_DIR}/pdi/shell-scripts
     
     perl -0777 \
-      -pe "s@\{\{ KETTLE_HOME \}\}@${COMMON_CONFIG_DIR}@igs" \
+      -pe "s@\{\{ KETTLE_HOME \}\}@${COMMON_CONFIG_DIR}/pdi@igs" \
       -i ${COMMON_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh 
 
 

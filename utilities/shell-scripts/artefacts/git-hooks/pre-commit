@@ -183,7 +183,66 @@ function check_supported_file_type {
 
 function check_filenames_are_lower_case {
 
+  TEST_NAME="All File And Folder Names Are Lower Case And Without Whitespaces"
+  print_header ${TEST_NAME}
+ 
+  declare -i NUMBER_OF_FILES_WITH_UPPER_CASES_OR_WHITESPACES=0
+ 
+  # printable range starts at space character and ends with tilde
+  # Note that the brackets around the tr range are required for portability
+  # to Solari's /usr/bin/tr. The square bracket bytes happen to fall in
+  # the designated space
+  FILES_WITH_UPPER_CASES_OR_WHITESPACES=`echo ${FILE_LIST} | grep -Ev "^[a-z0-9\_-\./]+$"`
+  NUMBER_OF_FILES_WITH_UPPER_CASES_OR_WHITESPACES=`echo ${FILES_WITH_UPPER_CASES_OR_WHITESPACES} | wc -w`
+ 
+  
+  echo "Number of files with upper case letters and/or whitespaces: ${NUMBER_OF_FILES_WITH_UPPER_CASES_OR_WHITESPACES}"
+ 
+  # error message if unacceptable files present
+  if [ ${NUMBER_OF_FILES_WITH_UPPER_CASES_OR_WHITESPACES} -gt 0 ]; then
+    print_failed ${TEST_NAME}
+    echo -e "\e[93mPlease only use lower case letters in filenames and avoid whitespaces!"
+    echo -e "Following filenames contain upper case letters and/or whitespaces:"
+    echo -e "${FILES_WITH_UPPER_CASES_OR_WHITESPACES}\n"
+    STAT=1
+  else
+    print_passed ${TEST_NAME}
+  fi
+  return ${STAT}
+
 }
+
+# File or folder names do not contain `dev`, test`, `beta`, `new`, `v[0-9]{1}`
+# this counteracts not using dedicated feature branches
+# doing this check at the end because by now every filename should be lower case
+function check_filenames_for_forbidden_keywords {
+
+  TEST_NAME="File And Folder Names Do Not Contain dev, test, beta, new, v[0-9]{1}"
+  print_header ${TEST_NAME}
+ 
+  declare -i NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD=0
+ 
+  FILES_WITH_FORBIDDEN_KEYWORD=`echo ${FILE_LIST} | grep -Ev "(dev|test|beta|new|v[0-9]{1})"`
+  NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD=`echo ${FILES_WITH_FORBIDDEN_KEYWORD} | wc -w`
+ 
+  
+  echo "Number of files with upper case letters and/or whitespaces: ${NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD}"
+ 
+  # error message if unacceptable files present
+  if [ ${NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD} -gt 0 ]; then
+    print_failed ${TEST_NAME}
+    echo -e "\e[93mPlease stop using dev, test, beta, new, v[0-9]{1} in your filenames!"
+    echo -e "It gives the impression you are not using a dedicated feature branch"
+    echo -e "Following filenames contain dev, test, beta, new, v[0-9]{1}:"
+    echo -e "${FILES_WITH_FORBIDDEN_KEYWORD}\n"
+    STAT=1
+  else
+    print_passed ${TEST_NAME}
+  fi
+  return ${STAT}
+
+}
+
 
 
 #######################################
@@ -322,13 +381,14 @@ function check_referenced_database_are_part_of_the_project {
   for FILE_WITH_DB_CONNECTION_REFERENCE in ${FILES_WITH_DB_CONNECTION_REFERENCE}
   do
     # allowed database names specified at the end here - should be externalised in the long term
-    LOCAL_COUNTER=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "" | grep -cvE "hive_generic|impala_generic|mysql_process_control")
+    CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "")
+    LOCAL_COUNTER=$(echo ${CONNECTIONS} | grep -cvE "hive_generic|impala_generic|mysql_process_control")
     if [ ${LOCAL_COUNTER} -gt 0 ]; then
       FILES_WITH_INVALID_DB_CONNECTION_REFERENCE+=(${FILE_WITH_DB_CONNECTION_REFERENCE})
       FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER+=1
  
       echo "${FILE_WITH_DB_CONNECTION_REFERENCE} has a non-project specific connection: "
-      grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "" | grep -vE "hive_generic|impala_generic|mysql_process_control"
+      echo ${CONNECTIONS} | grep -vE "hive_generic|impala_generic|mysql_process_control"
  
     fi
   done
@@ -359,6 +419,57 @@ function check_referenced_database_are_part_of_the_project {
 
 function check_parameters_and_variables_follow_naming_convention {
 
+  TEST_NAME="Parameters and Variables Follow Naming Convetion"
+  print_header ${TEST_NAME}
+  cd ${GIT_ROOT_DIR}/pdi
+ 
+  FILES_WITH_PARAMETERS=$(grep -Erl "\\$\{" .   || (echo ""))
+ 
+  declare -i FILES_WITH_PARAMETERS_COUNTER=0
+  FILE_WITH_INVALID_PARAMETERS=()
+
+  # change internal file separator so that spaces in file and folder names
+  # dont cause havoc
+  SAVEIFS=${IFS}
+  IFS=$(echo -en "\n\b")
+ 
+  for FILE_WITH_PARAMETERS in ${FILES_WITH_PARAMETERS}
+  do
+    # allowed parameter names specified at the end here - should be externalised in the long term
+    PARAMS_LIST=$(grep -E "\\$\{" ${FILE_WITH_PARAMETERS} | cut -d'{' -f2 | cut -d'}' -f1)
+    LOCAL_COUNTER=$(echo ${PARAMS_LIST} | grep -Evc "(^(VAR\_|PROP\_|PARAM\_)[A-Z0-9\_]+|^(Internal|awt|embedded|felix|file|https|java|karaf|log4j|org|sun|user|vfs)[a-zA-Z\.]+)")
+    if [ ${LOCAL_COUNTER} -gt 0 ]; then
+      FILE_WITH_INVALID_PARAMETERS+=(${FILE_WITH_PARAMETERS})
+      FILES_WITH_PARAMETERS_COUNTER+=1
+ 
+      echo "${FILE_WITH_PARAMETERS} has a non-project specific connection: "
+      echo ${PARAMS_LIST} | grep -Ev "^(VAR\_|PROP\_|PARAM\_)[A-Z0-9\_]+"
+ 
+    fi
+  done
+
+  # restore IFS
+  IFS=${SAVEIFS}
+ 
+ 
+  echo "Number of files with non valid parameters: ${FILES_WITH_PARAMETERS_COUNTER}"
+  # echo "Number of unacceptable files: ${#FILE_WITH_INVALID_PARAMETERS[*]}"
+  # error message if unacceptable files present
+  if [ ${FILES_WITH_PARAMETERS_COUNTER} -gt 0 ]; then
+    print_failed ${TEST_NAME}
+    echo -e "\e[93mThe following filename(s) do not have valid parameter names:\e[39m"
+ 
+ 
+    for ITEM in ${FILE_WITH_INVALID_PARAMETERS[*]}
+    do
+      echo -e "${ITEM}"
+    done
+    STAT=1
+  else
+    print_passed ${TEST_NAME}
+  fi
+  return ${STAT}
+
 }
  
 
@@ -368,7 +479,7 @@ function check_parameters_and_variables_follow_naming_convention {
  
 function check_supported_branch_name {
  
-  TEST_NAME="supported Branch Name"
+  TEST_NAME="Supported Branch Name"
   print_header ${TEST_NAME}
  
   declare -i VALID_BRANCH_NAME_COUNT=0
@@ -461,6 +572,9 @@ else
   check_hard_coded_domain_name
   check_defined_database_connections_are_part_of_the_project
   check_referenced_database_are_part_of_the_project
+  check_parameters_and_variables_follow_naming_convention
+  check_filenames_are_lower_case
+  check_filenames_for_forbidden_keywords
   if [ ${IS_REPO_BASED} = "Y" ]; then
     check_repo_path
   fi
