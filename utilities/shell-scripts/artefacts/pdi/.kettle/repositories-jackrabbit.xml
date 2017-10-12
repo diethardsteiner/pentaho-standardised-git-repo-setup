@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repositories>
+  <repository>    
+    <id>PentahoEnterpriseRepository</id>
+    <name>${PSGRS_PDI_REPO_NAME}</name>
+    <description>${PSGRS_PDI_REPO_DESCRIPTION}</description>
+    <is_default>false</is_default>
+    <repository_location_url>${PSGRS_PDI_REPO_URL}</repository_location_url>
+    <version_comment_mandatory>N</version_comment_mandatory>
+  </repository>
+</repositories>

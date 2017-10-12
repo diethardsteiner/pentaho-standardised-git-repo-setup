@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repositories>
+  <repository>    
+    <id>KettleFileRepository</id>
+    <name>${PSGRS_PDI_REPO_NAME}</name>
+    <description>${PSGRS_PDI_REPO_DESCRIPTION}</description>
+    <is_default>false</is_default>
+    <base_directory>${PSGRS_PDI_REPO_PATH}</base_directory>
+    <read_only>N</read_only>
+    <hides_hidden_files>N</hides_hidden_files>
+  </repository>  
+</repositories>
