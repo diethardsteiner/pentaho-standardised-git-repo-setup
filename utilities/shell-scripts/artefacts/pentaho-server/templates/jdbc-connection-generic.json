@@ -1,0 +1,36 @@
+{
+    "accessType": "NATIVE",
+    "attributes": {
+        "CUSTOM_DRIVER_CLASS": "${PSGRS_JDBC_CUSTOM_DRIVER_CLASS}",
+        "CUSTOM_URL": "${PSGRS_JDBC_CUSTOM_URL}",
+        "PORT_NUMBER": "0"
+    },
+    "changed": true,
+    "connectSql": "",
+    "connectionPoolingProperties": {},
+    "databaseName": null,
+    "databasePort": "0",
+    "databaseType": {
+        "defaultDatabaseName": null,
+        "defaultDatabasePort": -1,
+        "defaultOptions": null,
+        "extraOptionsHelpUrl": null,
+        "name": "Generic database",
+        "shortName": "GENERIC"
+    },
+    "extraOptions": {},
+    "extraOptionsOrder": {},
+    "forcingIdentifiersToLowerCase": false,
+    "forcingIdentifiersToUpperCase": false,
+    "hostname": "",
+    "initialPoolSize": 0,
+    "maximumPoolSize": 0,
+    "name": "${PSGRS_JDBC_CONNECTION_NAME}",
+    "partitioned": false,
+    "password": "",
+    "quoteAllFields": false,
+    "streamingResults": false,
+    "username": "",
+    "usingConnectionPool": true,
+    "usingDoubleDecimalAsSchemaTableSeparator": false
+}
