@@ -172,8 +172,8 @@ function pdi_module_repo {
     echo "Initialising Git Repo ..."
     cd ${PDI_MODULES_REPO_DIR}
     git init .
-    echo "Adding Git hooks ..."
-    cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${PDI_MODULES_REPO_DIR}/.git/hooks
+    # echo "Adding Git hooks ..."
+    # cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${PDI_MODULES_REPO_DIR}/.git/hooks
     echo "Adding kettle db connection files ..."
     cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/*.kdb .
     echo "Adding pdi modules as a git submodule ..."
@@ -183,7 +183,8 @@ function pdi_module_repo {
     git submodule update
 
     # enable pre-commit hook
-    chmod 700 ${PDI_MODULES_REPO_DIR}/.git/hooks/pre-commit
+    # chmod 700 ${PDI_MODULES_REPO_DIR}/.git/hooks/pre-commit
+
   fi 
 }
 
@@ -210,6 +211,7 @@ function project_code {
 
     echo "Adding Git hooks ..."
     cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${PROJECT_CODE_DIR}/.git/hooks
+    cp ${PSGRS_SHELL_DIR}/config/settings.sh ${PROJECT_CODE_DIR}/.git/hooks
     perl -0777 \
       -pe "s@\{\{ IS_CONFIG \}\}@N@igs" \
       -i ${PROJECT_CODE_DIR}/.git/hooks/pre-commit 
@@ -266,6 +268,7 @@ function project_code {
 
     # enable pre-commit hook
     chmod 700 ${PROJECT_CODE_DIR}/.git/hooks/pre-commit
+    chmod 700 ${PROJECT_CODE_DIR}/.git/hooks/settings.sh
 
   fi
 }
@@ -293,6 +296,7 @@ function project_config {
     git init .
     echo "Adding Git hooks ..."
     cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${PROJECT_CONFIG_DIR}/.git/hooks
+    cp ${PSGRS_SHELL_DIR}/config/settings.sh ${PROJECT_CONFIG_DIR}/.git/hooks
     perl -0777 \
       -pe "s@\{\{ IS_CONFIG \}\}@Y@igs" \
       -i ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit 
@@ -341,6 +345,7 @@ function project_config {
 
     # enable pre-commit hook
     chmod 700 ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
+    chmod 700 ${PROJECT_CONFIG_DIR}/.git/hooks/settings.sh
 
   fi
 }
@@ -463,6 +468,8 @@ function common_config {
     git init .
     echo "Adding Git hooks ..."
     cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${COMMON_CONFIG_DIR}/.git/hooks
+    cp ${PSGRS_SHELL_DIR}/config/settings.sh ${COMMON_CONFIG_DIR}/.git/hooks
+
     perl -0777 \
       -pe "s@\{\{ IS_CONFIG \}\}@Y@igs" \
       -i ${COMMON_CONFIG_DIR}/.git/hooks/pre-commit 
@@ -504,6 +511,7 @@ function common_config {
 
     # enable pre-commit hook
     chmod 700 ${COMMON_CONFIG_DIR}/.git/hooks/pre-commit
+    chmod 700 ${COMMON_CONFIG_DIR}/.git/hooks/settings.sh
 
 
     echo "Creating basic README file ..."

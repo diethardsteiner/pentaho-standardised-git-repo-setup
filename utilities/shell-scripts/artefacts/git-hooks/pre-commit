@@ -1,5 +1,6 @@
 #!/bin/bash
-
+SHELL_DIR=$(dirname $0)
+source ${SHELL_DIR}/settings.sh
 # check whether it is a config or code repository
 IS_CONFIG={{ IS_CONFIG }}
 # IS_CONFIG=N
@@ -31,7 +32,7 @@ function print_passed {
 
 # it would we good to have a switch here in case we have to check a legacy project
 # in which case we have to go through all files, not just the new ones
-if [ GIT_HOOKS_CHECKS_NEW_FILES_ONLY = "Y" ]; then
+if [ ${PSGRS_GIT_HOOKS_CHECKS_NEW_FILES_ONLY} = "Y" ]; then
   FILE_LIST=`git diff --cached --name-only`
 else
   FILE_LIST=`git ls-files`
@@ -153,12 +154,12 @@ function check_supported_file_type {
   if [ ${IS_CONFIG} = "Y" ]; then
     NOT_SUPPORTED_NEW_FILES=$(echo ${FILE_LIST} |
       # non-accepted file types
-      grep --invert-match -E "md$|properties$|sh$|json$|xml$|txt$|csv$"||
+      grep --invert-match -E "${PSGRS_GIT_CONFIG_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX}"||
       (echo ""))
    else
      NOT_SUPPORTED_NEW_FILES=$(echo ${FILE_LIST} |
       # non-accepted file types
-      grep --invert-match -E "cda$|cdfde$|css$|csv$|html$|jpeg$|js$|json$|kdb$|kjb$|ktr$|md$|png$|prpt$|prpti$|sh$|svg$|txt$|wcdf$|xanalyzer$|xmi$|xml$"||
+      grep --invert-match -E "${PSGRS_GIT_CODE_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX}"||
       (echo ""))
     fi
   # if the list is not empty ...
@@ -217,12 +218,12 @@ function check_filenames_are_lower_case {
 # doing this check at the end because by now every filename should be lower case
 function check_filenames_for_forbidden_keywords {
 
-  TEST_NAME="File And Folder Names Do Not Contain dev, test, beta, new, v[0-9]{1}"
+  TEST_NAME="File And Folder Names Do Not Contain ${PSGRS_FILE_OR_FOLDER_NAME_FORBIDDEN_KEYWORD}"
   print_header ${TEST_NAME}
  
   declare -i NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD=0
  
-  FILES_WITH_FORBIDDEN_KEYWORD=`echo ${FILE_LIST} | grep -Ev "(dev|test|beta|new|v[0-9]{1})"`
+  FILES_WITH_FORBIDDEN_KEYWORD=`echo ${FILE_LIST} | grep -Ev "${PSGRS_FILE_OR_FOLDER_NAME_FORBIDDEN_KEYWORD}"`
   NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD=`echo ${FILES_WITH_FORBIDDEN_KEYWORD} | wc -w`
  
   
@@ -364,10 +365,6 @@ function check_referenced_database_are_part_of_the_project {
   print_header ${TEST_NAME}
   cd ${GIT_ROOT_DIR}/pdi
  
-  # get connection references that do not match a predefined list
-  # grep -Er ".*<connection>.*?</connection>.*" .  | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -vE "hive_generic|impala_generic|mysql_process_control"
-  # grep -Er ".*<connection>.*?</connection>.*" .
- 
   FILES_WITH_DB_CONNECTION_REFERENCE=$(grep -Erl ".*<connection>.*?</connection>.*" --include="*.kjb" --include="*.ktr" --include="*.kdb" .  || (echo ""))
  
   declare -i FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER=0
@@ -382,13 +379,13 @@ function check_referenced_database_are_part_of_the_project {
   do
     # allowed database names specified at the end here - should be externalised in the long term
     CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "")
-    LOCAL_COUNTER=$(echo ${CONNECTIONS} | grep -cvE "hive_generic|impala_generic|mysql_process_control")
+    LOCAL_COUNTER=$(echo ${CONNECTIONS} | grep -cvE "${PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX}")
     if [ ${LOCAL_COUNTER} -gt 0 ]; then
       FILES_WITH_INVALID_DB_CONNECTION_REFERENCE+=(${FILE_WITH_DB_CONNECTION_REFERENCE})
       FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER+=1
  
       echo "${FILE_WITH_DB_CONNECTION_REFERENCE} has a non-project specific connection: "
-      echo ${CONNECTIONS} | grep -vE "hive_generic|impala_generic|mysql_process_control"
+      echo ${CONNECTIONS} | grep -vE "${PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX}"
  
     fi
   done
@@ -437,13 +434,13 @@ function check_parameters_and_variables_follow_naming_convention {
   do
     # allowed parameter names specified at the end here - should be externalised in the long term
     PARAMS_LIST=$(grep -E "\\$\{" ${FILE_WITH_PARAMETERS} | cut -d'{' -f2 | cut -d'}' -f1)
-    LOCAL_COUNTER=$(echo ${PARAMS_LIST} | grep -Evc "(^(VAR\_|PROP\_|PARAM\_)[A-Z0-9\_]+|^(Internal|awt|embedded|felix|file|https|java|karaf|log4j|org|sun|user|vfs)[a-zA-Z\.]+)")
+    LOCAL_COUNTER=$(echo ${PARAMS_LIST} | grep -Evc "${PSGRS_PDI_ACCEPTED_PARAMETER_OR_VARIABLE_NAME}")
     if [ ${LOCAL_COUNTER} -gt 0 ]; then
       FILE_WITH_INVALID_PARAMETERS+=(${FILE_WITH_PARAMETERS})
       FILES_WITH_PARAMETERS_COUNTER+=1
  
       echo "${FILE_WITH_PARAMETERS} has a non-project specific connection: "
-      echo ${PARAMS_LIST} | grep -Ev "^(VAR\_|PROP\_|PARAM\_)[A-Z0-9\_]+"
+      echo ${PARAMS_LIST} | grep -Ev "${PSGRS_PDI_ACCEPTED_PARAMETER_OR_VARIABLE_NAME}"
  
     fi
   done
@@ -482,19 +479,23 @@ function check_supported_branch_name {
   TEST_NAME="Supported Branch Name"
   print_header ${TEST_NAME}
  
+  cd ${GIT_ROOT_DIR}
+
   declare -i VALID_BRANCH_NAME_COUNT=0
  
+  # create array to store branch names
   BRANCH_NAME=`git branch | while read STAR BRANCH; do echo $BRANCH; done`
  
-  VALID_BRANCH_NAME_COUNT=$(echo BRANCH_NAME | grep -E "^master$|^feature\_.+|^release\_.+|^hotfix\_.+" | wc -w)
+  INVALID_BRANCH_NAMES_COUNT=$(echo ${BRANCH_NAME} | grep -Evc "${PSGRS_GIT_REPO_ACCEPTED_BRANCH_NAMES_REGEX}")
+  INVALID_BRANCH_NAMES=$(echo ${BRANCH_NAME} | grep -Ev "${PSGRS_GIT_REPO_ACCEPTED_BRANCH_NAMES_REGEX}")
  
  
   # error message if unacceptable files present
-  if [ ${VALID_BRANCH_NAME_COUNT} = 0 ]; then
+  if [ ${INVALID_BRANCH_NAMES_COUNT} -gt 0 ]; then
     print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following branch name does not match the list of accepted ones:\e[39m"
-    echo -e ${BRANCH_NAME}
-    echo -e "Accepted Branch Names: master, feature_*, release_*, hotfix_*"
+    echo -e "\e[93mThe following branch names does not match the list of accepted ones:\e[39m"
+    echo -e ${INVALID_BRANCH_NAMES}
+    echo -e "Accepted Branch Names: ${PSGRS_GIT_REPO_ACCEPTED_BRANCH_NAMES_REGEX}"
     STAT=1
   else
     print_passed ${TEST_NAME}
@@ -575,6 +576,7 @@ else
   check_parameters_and_variables_follow_naming_convention
   check_filenames_are_lower_case
   check_filenames_for_forbidden_keywords
+  check_supported_branch_name
   if [ ${IS_REPO_BASED} = "Y" ]; then
     check_repo_path
   fi
