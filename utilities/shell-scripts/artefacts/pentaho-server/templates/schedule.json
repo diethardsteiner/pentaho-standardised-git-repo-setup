@@ -1,0 +1,10 @@
+{
+   "inputFile" : "${REPOSITORY_PATH_TO_PDI_JOB_OR_TRANSFORMATION}",
+   "simpleJobTrigger" : {
+      "repeatInterval" : "5",
+      "repeatCount" : "-1",
+      "startTime" : "${PENTAHO_SERVER_SCHEDULE_START_TIME}",
+      "uiPassParam" : "MINUTES"
+   },
+   "jobName" : "${PDI_JOB_OR_TRANSFORMATION_NAME}"
+}
