@@ -104,9 +104,9 @@ while getopts ":a:p:e:s:" opt; do
 done
 
 # Example Usage:
-# /home/dsteiner/git/pentaho-standardised-git-repo-setup/utilities/shell-scripts/initialise-repo.sh -a standalone_project_config -p mysampleproj -e dev -s file-based
-# /home/dsteiner/git/pentaho-standardised-git-repo-setup/utilities/shell-scripts/initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-based
-# /home/dsteiner/git/pentaho-standardised-git-repo-setup/utilities/shell-scripts/initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-repo
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a standalone_project_config -p mysampleproj -e dev -s file-based
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-based
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-repo
 
 
 
@@ -144,7 +144,7 @@ function pdi_module {
     git init .
     # git hooks wont work here since the directory structure is different
     # echo "Adding Git hooks ..."
-    # cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${PDI_MODULES_DIR}/.git/hooks
+    # cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${PDI_MODULES_DIR}/.git/hooks
     # we have to create a file so that the master branch is created
     echo "creatng README file ..."
     touch README.md
@@ -173,7 +173,7 @@ function pdi_module_repo {
     cd ${PDI_MODULES_REPO_DIR}
     git init .
     # echo "Adding Git hooks ..."
-    # cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${PDI_MODULES_REPO_DIR}/.git/hooks
+    # cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${PDI_MODULES_REPO_DIR}/.git/hooks
     echo "Adding kettle db connection files ..."
     cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/*.kdb .
     echo "Adding pdi modules as a git submodule ..."
@@ -210,7 +210,7 @@ function project_code {
     git init .
 
     echo "Adding Git hooks ..."
-    cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${PROJECT_CODE_DIR}/.git/hooks
+    cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${PROJECT_CODE_DIR}/.git/hooks
     cp ${PSGRS_SHELL_DIR}/config/settings.sh ${PROJECT_CODE_DIR}/.git/hooks
     perl -0777 \
       -pe "s@\{\{ IS_CONFIG \}\}@N@igs" \
@@ -295,7 +295,7 @@ function project_config {
     echo "Initialising Git Repo ..."
     git init .
     echo "Adding Git hooks ..."
-    cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${PROJECT_CONFIG_DIR}/.git/hooks
+    cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${PROJECT_CONFIG_DIR}/.git/hooks
     cp ${PSGRS_SHELL_DIR}/config/settings.sh ${PROJECT_CONFIG_DIR}/.git/hooks
     perl -0777 \
       -pe "s@\{\{ IS_CONFIG \}\}@Y@igs" \
@@ -467,7 +467,7 @@ function common_config {
     echo "Initialising Git Repo ..."
     git init .
     echo "Adding Git hooks ..."
-    cp ${PSGRS_SHELL_DIR}/artefacts/git-hooks/* ${COMMON_CONFIG_DIR}/.git/hooks
+    cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${COMMON_CONFIG_DIR}/.git/hooks
     cp ${PSGRS_SHELL_DIR}/config/settings.sh ${COMMON_CONFIG_DIR}/.git/hooks
 
     perl -0777 \
