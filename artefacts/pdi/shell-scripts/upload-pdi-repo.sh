@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# NOTE: It might be better to use the Penatho Server REST API restore call instead
+# since there is no dependency on repositories.xml
+
 source ./ci-settings.sh
 # we need PDI_DIR
 source ../../../common-config-dev/shell-scripts/set_env_variables.sh
