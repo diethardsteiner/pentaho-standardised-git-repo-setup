@@ -369,7 +369,7 @@ function standalone_project_config {
 
   echo "Adding essential shell files ..."
 
-  export PSGRS_KETTLE_HOME=${PROJECT_CONFIG_DIR}/pdi 
+  export KETTLE_HOME=${PROJECT_CONFIG_DIR}/pdi 
 
   envsubst \
     < ${PSGRS_SHELL_DIR}/artefacts/common-config/set-env-variables.sh \
@@ -481,7 +481,9 @@ function common_config {
 
     echo "Adding .kettle files ..."
     
-    cp ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties .kettle
+    cp ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties \
+      pdi/.kettle
+
     if [ ${PSGRS_PDI_STORAGE_TYPE} = "file-repo" ]; then
 
       export PSGRS_PDI_REPO_NAME=${PSGRS_PROJECT_NAME}
@@ -500,7 +502,7 @@ function common_config {
     # ---
     echo "Adding essential shell files ..."
 
-    export PSGRS_KETTLE_HOME=${COMMON_CONFIG_DIR}/pdi 
+    export KETTLE_HOME=${COMMON_CONFIG_DIR}/pdi 
 
     envsubst \
       < ${PSGRS_SHELL_DIR}/artefacts/common-config/set-env-variables.sh \
