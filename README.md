@@ -50,6 +50,47 @@ The `initialise-repo.sh` script expects following **arguments**:
 
 > **Note**: If any of these repositories already exist within the same folder, they will not be overwritten. The idea is to run the script in a fresh/clean base dir, have to script create the repos and then push them to the central git server.
 
+You can just run the script without arguments and the expected usage pattern will be displayed:
+
+```bash
+$ initialise-repo.sh
+ERROR: Not all mandatory arguments supplied, please supply environment and/or job arguments
+
+Usage: initialise-repo.sh ...
+Creates a basic folder structure for a Pentaho code or config repository
+
+Mandatory arguments
+
+-a   PSGRS_ACTION: Choose number
+        (1) Project Repo with Common Config and Modules
+        (2) Standalone Project and Config (No Common Artefacts)
+        pdi_module
+        pdi_module_repo
+        project_code
+        project_config
+        standalone_project_config
+        common_code
+        common_config
+        project_docu
+        common_docu
+ 
+Optional arguments:
+ 
+-p  PROJECT NAME:  Lower case, only letters allowed, no underscores, dashes etc.
+                   Minimum of 3 to a maximum of 20 letters.
+-e  ENVIRONMENT:   Name of the environment: dev, test, prod or similiar. 
+                   Lower case, only letters allowed, no underscores, dashes etc
+                   Minimum of 3 to a maximum of 10 letters.
+-s  STORAGE TYPE:  Which type of PDI storage type to use.
+                   Possible values: file-based, file-repo. Not supported: db-repo, ee-repo
+
+Sample usage:
+initialise-repo.sh -a standalone_project_config -p mysampleproj -e dev -s file-based
+initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-repo
+
+exiting ...
+```
+
 ## Example
 
 Creating a new **project** called `myproject` with **common artefacts** for the `dev` **environment** using a PDI file-based **storage approach** 

@@ -10,7 +10,7 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "ERROR: Not all mandatory arguments supplied, please supply environment and/or job arguments"
     echo
     echo "Usage: initialise-repo.sh ..."
-    echo "Creates a basic folder structure for a code repository"
+    echo "Creates a basic folder structure for a Pentaho code or config repository"
     echo 
     echo "Mandatory arguments"
     echo
