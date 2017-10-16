@@ -1,12 +1,19 @@
 #!/bin/bash
-# THIS FILE IS NOT SUPPORTED YET IN THIS VERSION
+
+# ========== ORGANISATION SPECFIC CONFIGURATION PROPERTIES =========== #
+
+## ~~~~~~~~~~~~~~~~~ AMEND FOR YOUR ORANGISATION ~~~~~~~~~~~~~~~~~~~~~##
+##                      ______________________                        ##
+# The SSH or HTTPS URL to clone the modules repo
+export PSGRS_MODULES_GIT_REPO_URL=git@github.com:diethardsteiner/pentaho-pdi-modules.git
+# **Note**: If this repo is not present yet, use this script 
+# to create it and push it to your Git Server (GitHub, etc).
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+### TARGET ENVIRONMENT SETTINGS ####
 export PSGRS_PDI_DIR=${HOME}/design-tools/data-integration
 export PSGRS_LOG_DIR=${HOME}/logs
 ### SETTINGS FOR GIT HOOKS ###
-## --- This section is not supported yet --- ##
-## --- we could simply add them to the beginning of the githooks
-## --- file and echo the values out at the required places
-# specify whether only new files should be checked
 export PSGRS_GIT_HOOKS_CHECKS_NEW_FILES_ONLY="Y"
 # pipe delimited list of accepted database connection names
 export PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX="hive_generic|impala_generic|mysql_process_control"

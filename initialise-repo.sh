@@ -1,20 +1,6 @@
 #!/bin/bash
 
 
-# ========== ORGANISATION SPECFIC CONFIGURATION PROPERTIES =========== #
-
-## ~~~~~~~~~~~~~~~~~ AMEND FOR YOUR ORANGISATION ~~~~~~~~~~~~~~~~~~~~~##
-##                      ______________________                        ##
-
-# The SSH or HTTPS URL to clone the modules repo
-MODULES_GIT_REPO_URL=git@github.com:diethardsteiner/pentaho-pdi-modules.git
-# **Note**: If this repo is not present yet, use this script 
-# to create it and push it to your Git Server (GitHub, etc).
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
-
-
-
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~ DO NOT CHANGE ~~~~~~~~~~~~~~~~~~~~~~~~~~~##
 ##                      ______________________                        ##
 
@@ -177,7 +163,7 @@ function pdi_module_repo {
     echo "Adding kettle db connection files ..."
     cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/*.kdb .
     echo "Adding pdi modules as a git submodule ..."
-    git submodule add -b master ${MODULES_GIT_REPO_URL} modules
+    git submodule add -b master ${PSGRS_MODULES_GIT_REPO_URL} modules
     # the next command is only required in older git versions to get the content for the submodule
     git submodule init
     git submodule update
@@ -251,7 +237,7 @@ function project_code {
     
     echo "Adding pdi modules as a git submodule ..."
     
-    git submodule add -b master ${MODULES_GIT_REPO_URL} pdi/modules
+    git submodule add -b master ${PSGRS_MODULES_GIT_REPO_URL} pdi/modules
     git submodule init
     git submodule update
     

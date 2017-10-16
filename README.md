@@ -1,19 +1,31 @@
 # Getting Started
 
+## Purpose
+
+To understand what the project is about, have a look at the presentation in this repos' [presentation](./presentations/pcm2017.md). Read this before proceeding.
+
+> **In a nutshell**: This project delivers a utility script which sets up potentially several Pentaho specific git repos with a predefined/standardised folder structure and utilises Git Hooks to enforce a few coding standards.
+
 ## Initial Setup
 
-The `utilities` (pentaho-standardised-git-repo-setup) git repo is provided as a template. You will have to change a few configuration details to make it fit within your organisation. Once you have made these changes, you have to make it available via a Git Server/Web Frontend like **Github**, **GitLab**, **Bitbucket** or similar. From there, anyone who wants to create a new Git project within your organisation, can clone this pre-configured `utilities` repo and run the `initialise-repo.sh` script located within it, which will set up the basic git folder structure.
 
-You have to change the following in the utilities folder:
+Clone the repo to your local machine: 
 
-- `shell-scripts/initialise-repo.sh`: There is only one parameter to define called `MODULES_GIT_REPO_URL`, which is the **SSH** or **HTTPS** URL to clone the **modules repo**. 
+```bash 
+git clone git@github.com:diethardsteiner/pentaho-standardised-git-repo-setup.git
+cd pentaho-standardised-git-repo-setup
+```
 
-> **Note**: If this modules repo is not present yet, use the `shell-scripts/initialise-repo.sh` to create it and push it to your Git Server (GitHub, etc). Then adjust the configuration.
+Next have to change the following file **for each project and environment** that you want to create the git skeleton for:
+
+- `config/settings.sh`: Read comments in file to understand what the settings mean.
+
+> **Note**: If the `MODULES_GIT_REPO_URL` repo is not present yet, use the `initialise-repo.sh` to create it and push it to your Git Server (GitHub, etc). Then adjust the configuration.
 
 
 ## Initialise Project Structure
 
-Clone the `utilities` repo. Inside the `shell-script` folder, you can find a script called `initialise-repo.sh`, which can create:
+The `initialise-repo.sh` can create:
 
 - project-specific **config repo** for a given environment (`<proj>-conf-<env>`)
 - common **config repo** for a given environment (`common-conf-<env>`)
@@ -36,30 +48,32 @@ The `initialise-repo.sh` script expects following **arguments**:
 
 > **Important**: All the repositories have to be located within the same folder. This folder is referred to as `BASE_DIR`.
 
-> **Note**: If any of these repositories already exist within the same folder, they will not be overwritten.
+> **Note**: If any of these repositories already exist within the same folder, they will not be overwritten. The idea is to run the script in a fresh/clean base dir, have to script create the repos and then push them to the central git server.
 
 ## Example
 
 Creating a new **project** called `myproject` with **common artefacts** for the `dev` **environment** using a PDI file-based **storage approach** 
 
 ```bash
-$ sh ./utilities/shell-scripts/initialise-repo.sh -a 1 -p myproject -e dev -s files
+$ sh initialise-repo.sh -a 1 -p myproject -e dev -s file-based
 ```
 
-Once this is in place, you have to change the following:
+Once this is in place, most settings should be automatically set, however, double check the following files and amend if required:
 
-- `common-config-<env>/.kettle/repositories.xml` (only when using repo storage mode): Set the path to the PDI repository of your project (located in `myproject/etl`) as well as provide a name and description for the PDI repository.
-- `common-config-<env>/shell-scripts/set_env_variables.sh`
-- `myproject-config-<env>/shell-scripts/wrapper.sh`: There are only changes required in the `PROJECT-SPECIFIC CONFIGURATION PROPERTIES` section.
+- `common-config-<env>/pdi/.kettle/repositories.xml` (only when using repo storage mode)
+- `common-config-<env>/pdi/shell-scripts/set_env_variables.sh`
+- `myproject-config-<env>/pdi/shell-scripts/wrapper.sh`: There are only changes required in the `PROJECT-SPECIFIC CONFIGURATION PROPERTIES` section.
 
 If you are setting this up on your local workstation, you should be able to start Spoon now and connect to the PDI repository. 
 
+> **Note**: Pay attention to the console output while running the script. There should be a line at the end saying how you can initialise the essential environment variables. You have to run this command before starting Spoon!
+
 As the next step you might want to adjust:
 
-- `common-config-<env>/.kettle/kettle.properties`
-- `common-config-<env>/.kettle/shared.xml` (only when using file-based storage mode)
-- `myproject-config-<env>/properties/myproject.properties`
-- `myproject-config-<env>/properties/jb_myproject_master.properties`
+- `common-config-<env>/pdi/.kettle/kettle.properties`
+- `common-config-<env>/pdi/.kettle/shared.xml` (only when using file-based storage mode)
+- `myproject-config-<env>/pdi/properties/myproject.properties`
+- `myproject-config-<env>/pdi/properties/jb_myproject_master.properties`
 
 Don't forget to commit all these changes. You will also have to set the Git remote for these repositories.
 
