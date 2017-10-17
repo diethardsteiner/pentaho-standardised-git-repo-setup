@@ -132,7 +132,7 @@ function pdi_module {
     # echo "Adding Git hooks ..."
     # cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${PDI_MODULES_DIR}/.git/hooks
     # we have to create a file so that the master branch is created
-    echo "creatng README file ..."
+    echo "creating README file ..."
     touch README.md
     echo "adding module_1 sample module ..."
     cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/module_1 .
@@ -222,6 +222,14 @@ function project_code {
     mkdir shell-scripts
     mkdir -p sql/ddl
 
+    # adding file so folders can be committed
+    touch pdi/${PSGRS_PROJECT_NAME}/.gitignore
+    touch pentaho-server/metadata/.gitignore 
+    touch pentaho-server/mondrian/.gitignore
+    touch prd/.gitignore
+    touch shell-scripts/.gitignore
+    touch sql/ddl/.gitignore
+
     echo "Creating basic README file ..."
     echo "Documentation can be found in the dedicated documentation Git repo called ${PSGRS_PROJECT_NAME}-documentation" > README.md
 
@@ -299,6 +307,14 @@ function project_config {
     mkdir -p pdi/shell-scripts 
     mkdir -p pdi/test-data
     mkdir -p pentaho-server/connections
+
+    # adding file so that the folders can be commited
+    touch pdi/metadata/.gitignore
+    touch pdi/properties/.gitignore
+    touch pdi/schedules/.gitignore
+    touch pdi/shell-scripts/.gitignore
+    touch pdi/test-data/.gitignore
+    touch pentaho-server/connections/.gitignore
     
     echo "Adding essential shell files ..."
 
