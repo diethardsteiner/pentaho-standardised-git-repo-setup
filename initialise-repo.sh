@@ -371,7 +371,7 @@ function standalone_project_config {
 
   echo "Adding essential shell files ..."
 
-  export KETTLE_HOME=${PROJECT_CONFIG_DIR}/pdi 
+  export PSGRS_KETTLE_HOME=${PROJECT_CONFIG_DIR}/pdi 
 
   envsubst \
     < ${PSGRS_SHELL_DIR}/artefacts/common-config/set-env-variables.sh \
