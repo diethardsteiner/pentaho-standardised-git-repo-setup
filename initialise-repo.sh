@@ -504,7 +504,7 @@ function common_config {
     # ---
     echo "Adding essential shell files ..."
 
-    export KETTLE_HOME=${COMMON_CONFIG_DIR}/pdi 
+    export PSGRS_KETTLE_HOME=${COMMON_CONFIG_DIR}/pdi 
 
     envsubst \
       < ${PSGRS_SHELL_DIR}/artefacts/common-config/set-env-variables.sh \
