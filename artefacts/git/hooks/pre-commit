@@ -378,7 +378,9 @@ function check_referenced_database_are_part_of_the_project {
   for FILE_WITH_DB_CONNECTION_REFERENCE in ${FILES_WITH_DB_CONNECTION_REFERENCE}
   do
     # allowed database names specified at the end here - should be externalised in the long term
-    CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "")
+    # CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "")
+    # note: removing blank connection at the end do not work, hence adjusted:
+    CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u )
     LOCAL_COUNTER=$(echo ${CONNECTIONS} | grep -cvE "${PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX}")
     if [ ${LOCAL_COUNTER} -gt 0 ]; then
       FILES_WITH_INVALID_DB_CONNECTION_REFERENCE+=(${FILE_WITH_DB_CONNECTION_REFERENCE})

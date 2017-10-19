@@ -18,7 +18,9 @@ echo "VERSION: ${VERSION}"
 echo "PREFIX:  ${PREFIX}"
 echo "PACKAGE_FILE_PATH: ${PACKAGE_FILE_PATH}"
 
-# USAGE: ./package-git-repo.sh /tmp/test/mysampleproj-code 0.1 mysampleproj-code /tmp/mysampleproj-code.tar
+# -----------------
+# EXAMPLE USAGE: ./package-git-repo.sh /tmp/test/mysampleproj-code 0.1 mysampleproj-code /tmp/mysampleproj-code.tar
+# -----------------
 
 cd ${GIT_DIR}
 
