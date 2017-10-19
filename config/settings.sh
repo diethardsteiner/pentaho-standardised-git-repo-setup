@@ -18,7 +18,7 @@ export PSGRS_GIT_HOOKS_CHECKS_NEW_FILES_ONLY="Y"
 # pipe delimited list of accepted database connection names
 export PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX="^module\_.*|^hive_generic$|^impala_generic$|^mysql_process_control$"
 # regex to identify valid file extensions in a code repo
-export PSGRS_GIT_CODE_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX="cda$|cdfde$|css$|csv$|html$|jpeg$|js$|json$|kdb$|kjb$|ktr$|md$|png$|prpt$|prpti$|sh$|svg$|txt$|wcdf$|xanalyzer$|xmi$|xml$"
+export PSGRS_GIT_CODE_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX="cda$|cdfde$|css$|csv$|html$|jpeg$|js$|json$|kdb$|kjb$|ktr$|md$|png$|prpt$|prpti$|sql$|sh$|svg$|txt$|wcdf$|xanalyzer$|xmi$|xml$"
 # regex to identify valid file extensions in a config repo
 export PSGRS_GIT_CONFIG_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX="md$|properties$|sh$|json$|xml$|txt$|csv$"
 # regex specifying the accepted git branch names

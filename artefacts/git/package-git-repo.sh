@@ -99,16 +99,15 @@ echo "Adding File Manifest to Main package ..."
 
 cd `git_root`
 # get commit id from first commit
-TAG_FROM=$(git log --reverse --pretty="%H" -1) # [OPEN] This is still returning the last one
+TAG_FROM=$(git log --format="%H" | head -n2 | tail -n1) 
 TAG_TO=${TAG}
 TEMP=`mktemp`
 
 # Append the new log to the top of the changelog file
 echo -e "# Version ${TAG_TO}\n=============" > ${GIT_DIR}/rpmbuild/CHANGELOG.md
 echo "Showing changes from: ${TAG_FROM}" >> ${GIT_DIR}/rpmbuild/CHANGELOG.md
-git log $TAG_FROM..$TAG_TO --no-merges --sparse --date='format-local:%Y-%m-%d %H:%M:%S' \
---pretty=format:"%ad %<(20,tunc)%aN %s" | sed -e 's/_/\\_/g' && \
-echo -e "\n" >> ${GIT_DIR}/rpmbuild/CHANGELOG.md
+CHANGELOG=$(git log $TAG_FROM..$TAG_TO --no-merges --sparse --date='format-local:%Y-%m-%d %H:%M:%S' --pretty=format:"%ad %<(20,trunc)%aN %s" | sed -e 's/_/\\_/g')
+echo ${CHANGELOG} >> ${GIT_DIR}/rpmbuild/CHANGELOG.md
 
 echo "Adding File Manifest to Main package ..."
     tar --append --file=${PACKAGE_FILE_PATH} -C ${GIT_DIR}/rpmbuild CHANGELOG.md
