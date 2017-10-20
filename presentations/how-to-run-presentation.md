@@ -33,17 +33,41 @@ export PATH=$PATH:/usr/local/texlive/2017/bin/x86_64-linux
 To get the HTML output run:
 
 ```
-madoko -v ./pcm2017.md --odir=/home/dsteiner/Documents/pcm2017-presentatation-html
+madoko -v ./pcm2017.md --odir=/home/dsteiner/Documents/pcm2017-presentation-html
+```
+
+Settings used for HTML output (have to be put at the beginning of document):
+
+```
+[INCLUDE=presentation]
+Title         : Pentaho Standardised Git Repo Setup
+Sub Title     : For Big Agile Teams
+Author        : Diethard Steiner
+Affiliation   : Bissol Consulting Ltd
+Email         : diethard.steiner@bissolconsulting.com
+Reveal Theme  : night
+Beamer Theme  : metropolis
 ```
 
 
 To generate a PDF version run:
 
 ```
-madoko --pdf -vv ./pcm2017.md --odir=/home/dsteiner/Documents/pcm2017-presentatation-pdf
+madoko --pdf -vv ./pcm2017.md --odir=/home/dsteiner/Documents/pcm2017-presentation-pdf
 ```
 
-# Fix code block font color
+
+Settings used for PDF output (have to be put at the beginning of document):
+
+```
+Title         : Pentaho Standardised Git Repo Setup
+Sub Title     : For Big Agile Teams
+Author        : Diethard Steiner
+Affiliation   : Bissol Consulting Ltd
+Email         : diethard.steiner@bissolconsulting.com
+```
+
+# Fix code block font color for the HTML outpu
 
 Add to main HTML:
 
