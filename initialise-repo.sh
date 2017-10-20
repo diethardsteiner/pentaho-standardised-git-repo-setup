@@ -371,7 +371,7 @@ function standalone_project_config {
 
   echo "Adding essential shell files ..."
 
-  export KETTLE_HOME=${PROJECT_CONFIG_DIR}/pdi 
+  export PSGRS_KETTLE_HOME=${PROJECT_CONFIG_DIR}/pdi 
 
   envsubst \
     < ${PSGRS_SHELL_DIR}/artefacts/common-config/set-env-variables.sh \
@@ -415,8 +415,8 @@ function standalone_project_config {
   echo "==============================="
   echo ""
 
-  echo "Running set-env-variables.sh now so that at least KETTLE_HOME is defined."
-  echo "You can start PDI Spoon now if working on a dev machine."
+  # echo "Running set-env-variables.sh now so that at least KETTLE_HOME is defined."
+  # echo "You can start PDI Spoon now if working on a dev machine."
   echo ""
 
   source ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh
@@ -504,7 +504,7 @@ function common_config {
     # ---
     echo "Adding essential shell files ..."
 
-    export KETTLE_HOME=${COMMON_CONFIG_DIR}/pdi 
+    export PSGRS_KETTLE_HOME=${COMMON_CONFIG_DIR}/pdi 
 
     envsubst \
       < ${PSGRS_SHELL_DIR}/artefacts/common-config/set-env-variables.sh \
@@ -526,14 +526,16 @@ function common_config {
     echo ""
     echo -e "\e[34m\e[47mIMPORTANT\e[0m"
     echo "Amend the following configuration file:"
-    echo "${COMMON_CONFIG_DIR}/shell-scripts/set-env-variables.sh"
+    echo "${COMMON_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh"
     echo ""
     echo ""
+    echo "Before using Spoon, source this file:"
+    echo "source ${COMMON_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh"
     echo "==============================="
     echo ""
 
-    echo "Running set-env-variables.sh now so that at least KETTLE_HOME is defined."
-    echo "You can start PDI Spoon now if working on a dev machine."
+    # echo "Running set-env-variables.sh now so that at least KETTLE_HOME is defined."
+    # echo "You can start PDI Spoon now if working on a dev machine."
     echo ""
 
     source ${COMMON_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh
