@@ -47,6 +47,8 @@ Affiliation   : Bissol Consulting Ltd
 Email         : diethard.steiner@bissolconsulting.com
 Reveal Theme  : night
 Beamer Theme  : metropolis
+
+[TITLE]
 ```
 
 
@@ -65,6 +67,10 @@ Sub Title     : For Big Agile Teams
 Author        : Diethard Steiner
 Affiliation   : Bissol Consulting Ltd
 Email         : diethard.steiner@bissolconsulting.com
+
+[TITLE]
+
+[TOC]
 ```
 
 # Fix code block font color for the HTML outpu

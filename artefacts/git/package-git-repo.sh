@@ -111,16 +111,21 @@ echo ${CHANGELOG} >> ${GIT_DIR}/rpmbuild/CHANGELOG.md
 
 echo "Adding File Manifest to Main package ..."
     tar --append --file=${PACKAGE_FILE_PATH} -C ${GIT_DIR}/rpmbuild CHANGELOG.md
-# [OPEN] not working yet
-
-
-# ADD RPM SPECFILE
-
-
-
 
 # Remove temporary files
 if [ -d "${GIT_DIR}/rpmbuild" ]; then
   echo "Reomoving tmp dir ${GIT_DIR}/rpmbuild ..."
   rm -r ${GIT_DIR}/rpmbuild
 fi
+
+# build RPM
+
+PSGRS_RPM_DIR=/tmp/psgrs
+
+mkdir ${PSGRS_RPM_DIR}
+cd ${PSGRS_RPM_DIR}
+# create minimum required folders
+mkdir SOURCES SPECS # BUILD RPMS SRPMS
+cd SOURCES
+# copy tar file into source folder
+cp ${PACKAGE_FILE_PATH} .
