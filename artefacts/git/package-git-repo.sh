@@ -125,7 +125,16 @@ PSGRS_RPM_DIR=/tmp/psgrs
 mkdir ${PSGRS_RPM_DIR}
 cd ${PSGRS_RPM_DIR}
 # create minimum required folders
-mkdir SOURCES SPECS # BUILD RPMS SRPMS
-cd SOURCES
+mkdir SOURCES SPECS BUILD RPMS SRPMS
 # copy tar file into source folder
-cp ${PACKAGE_FILE_PATH} .
+cp ${PACKAGE_FILE_PATH} SOURCES
+# copy spec file
+# [OPEN] this file has to be copied across to the project-code repo
+# [OPEN] spec file has to be customized before copying over
+#
+# [OPEN] version and release number has to be fed in locally here!
+# envsubst ...
+# only then we can reference the spec file
+# cp ??../template.spec SPECS
+# build rpm
+# rpmbuild -v -bb --clean SPECS/template.spec

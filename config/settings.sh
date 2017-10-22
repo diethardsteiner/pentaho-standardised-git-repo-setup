@@ -10,11 +10,11 @@ export PSGRS_MODULES_GIT_REPO_URL=git@github.com:diethardsteiner/pentaho-pdi-mod
 # to create it and push it to your Git Server (GitHub, etc).
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
-### TARGET ENVIRONMENT SETTINGS ####
+### TARGET ENVIRONMENT SETTINGS ###
 export PSGRS_PDI_DIR=${HOME}/design-tools/data-integration
 export PSGRS_LOG_DIR=${HOME}/logs
 ### SETTINGS FOR GIT HOOKS ###
-export PSGRS_GIT_HOOKS_CHECKS_NEW_FILES_ONLY="Y"
+export PSGRS_GIT_HOOKS_CHECKS_NEW_FILES_ONLY="N"
 # pipe delimited list of accepted database connection names
 export PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX="^module\_.*|^hive_generic$|^impala_generic$|^mysql_process_control$"
 # regex to identify valid file extensions in a code repo
@@ -27,3 +27,11 @@ export PSGRS_GIT_REPO_ACCEPTED_BRANCH_NAMES_REGEX="^master$|^dev$|^feature\_.+|^
 export PSGRS_FILE_OR_FOLDER_NAME_FORBIDDEN_KEYWORD="(dev|test|beta|new|v[0-9]{1})"
 # regex specifying the accepted pdi parameter or variable name
 export PSGRS_PDI_ACCEPTED_PARAMETER_OR_VARIABLE_NAME="(^(VAR\_|PROP\_|PARAM\_)[A-Z0-9\_]+|^(Internal|awt|embedded|felix|file|https|java|karaf|log4j|org|sun|user|vfs)[a-zA-Z\.]+)"
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+### RPM BUILD ###
+# directory which will hold the rpm build artefacts - should be within home dir
+export PSGRS_RPM_BUILD_HOME=${HOME}/psgrs
+# top level description that forms part of the rpm build
+export PSGRS_RPM_SUMMARY=
+# slightly longer description that forms part of the rpm build
+export PSGRS_RPM_DESCRIPTION=
