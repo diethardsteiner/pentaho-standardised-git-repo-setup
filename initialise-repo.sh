@@ -342,6 +342,17 @@ function project_config {
     # copy deployment scripts across
     # [OPEN]
 
+    # rpm script
+    mkdir -p utilities/build-rpm
+
+    cp ${PSGRS_SHELL_DIR}/artefacts/git/package-git-repo.sh \
+       ${PROJECT_CONFIG_DIR}/utilities/build-rpm
+
+    envsubst \
+      < ${PSGRS_SHELL_DIR}/artefacts/utilities/build-rpm/template.spec \
+      > ${PROJECT_CONFIG_DIR}/utilities/build-rpm/template.spec
+
+
     echo "Creating basic README file ..."
     echo "Project specific configuration for ${PSGRS_ENV} environment." > ${PROJECT_CONFIG_DIR}/README.md  
 

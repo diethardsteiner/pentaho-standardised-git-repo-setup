@@ -85,7 +85,7 @@ function check_for_paths_with_whitespaces  {
 
   declare -i NUMBER_OF_PATHS_WITH_WHITESPACES=0
 
-  PATHS_WITH_WHITESPACES=`find . -path pdi/.meta -prune -o -print | grep " "`
+  PATHS_WITH_WHITESPACES=`find . -path pdi/.meta -prune -o -print | grep -E ".*\s.*"`
   NUMBER_OF_PATHS_WITH_WHITESPACES=`echo ${PATHS_WITH_WHITESPACES} | wc -w`  
 
   echo "Number of paths with whitespaces: ${NUMBER_OF_PATHS_WITH_WHITESPACES}"
@@ -317,7 +317,7 @@ function check_hardcoded_ip {
   # error message if unacceptable files present
   if [ ${NUMBER_OF_FILES_WITH_HARDCODED_IP} -gt 0 ]; then
     print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following file(s) do have hard code IP addresses:\e[39m"
+    echo -e "\e[93mThe following filename(s) do have hard code IP addresses:\e[39m"
     echo -e "${FILES_WITH_HARDCODED_IP}\n"
     STAT=1
   else
@@ -348,7 +348,7 @@ function check_hard_coded_domain_name {
   # error message if unacceptable files present
   if [ ${NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME} -gt 0 ]; then
     print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following file(s) do have hard code Domain Names:\e[39m"
+    echo -e "\e[93mThe following filename(s) do have hard code Domain Names:\e[39m"
     echo -e "${FILES_WITH_HARDCODED_DOMAIN_NAME}\n"
     STAT=1
   else
@@ -378,9 +378,7 @@ function check_referenced_database_are_part_of_the_project {
   for FILE_WITH_DB_CONNECTION_REFERENCE in ${FILES_WITH_DB_CONNECTION_REFERENCE}
   do
     # allowed database names specified at the end here - should be externalised in the long term
-    # CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "")
-    # note: removing blank connection at the end do not work, hence adjusted:
-    CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u )
+    CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "")
     LOCAL_COUNTER=$(echo ${CONNECTIONS} | grep -cvE "${PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX}")
     if [ ${LOCAL_COUNTER} -gt 0 ]; then
       FILES_WITH_INVALID_DB_CONNECTION_REFERENCE+=(${FILE_WITH_DB_CONNECTION_REFERENCE})
@@ -401,7 +399,7 @@ function check_referenced_database_are_part_of_the_project {
   # error message if unacceptable files present
   if [ ${FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER} -gt 0 ]; then
     print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following file(s) do have invalid DB references:\e[39m"
+    echo -e "\e[93mThe following filename(s) do have invalid DB references:\e[39m"
  
  
     for ITEM in ${FILES_WITH_INVALID_DB_CONNECTION_REFERENCE[*]}
@@ -456,7 +454,7 @@ function check_parameters_and_variables_follow_naming_convention {
   # error message if unacceptable files present
   if [ ${FILES_WITH_PARAMETERS_COUNTER} -gt 0 ]; then
     print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following file(s) do not have valid parameter names:\e[39m"
+    echo -e "\e[93mThe following filename(s) do not have valid parameter names:\e[39m"
  
  
     for ITEM in ${FILE_WITH_INVALID_PARAMETERS[*]}
