@@ -32,12 +32,16 @@ function print_passed {
 
 # it would we good to have a switch here in case we have to check a legacy project
 # in which case we have to go through all files, not just the new ones
+cd ${GIT_ROOT_DIR}
 if [ ${PSGRS_GIT_HOOKS_CHECKS_NEW_FILES_ONLY} = "Y" ]; then
   FILE_LIST=`git diff --cached --name-only`
 else
   FILE_LIST=`git ls-files`
   # FILE_LIST=`find . -path ./.git -prune -o -print`
 fi
+
+
+PDI_KTR_AND_KJB_FILES=$(find pdi ! -type d -name '*ktr' -or -name '*kjb')
 
 
 
@@ -256,25 +260,29 @@ function check_repo_path {
  
   TEST_NAME="Check Repo Paths"
   print_header ${TEST_NAME}
-  cd ${GIT_ROOT_DIR}/pdi
+  # cd ${GIT_ROOT_DIR}/pdi
+  
+  MY_FILES=$(echo ${PDI_KTR_AND_KJB_FILES})
  
   declare -i COUNTER=0
 
   # change internal file separator so that spaces in file and folder names
   # dont cause havoc
-  SAVEIFS=${IFS}
-  IFS=$(echo -en "\n\b")
+  # SAVEIFS=${IFS}
+  # IFS=$(echo -en "\n\b")
 
-  for MY_FILE in `find . ! -type d -name '*ktr' -or -name '*kjb'`
+  for MY_FILE in ${MY_FILES}
   do
     FOLDER=$(dirname ${MY_FILE})
-    # get rid of the `./pdi/` starting bit
-    FOLDER=`echo ${FOLDER} | cut -c 2-`
+    # get rid of the `pdi/` starting bit
+    FOLDER=`echo ${FOLDER} | cut -c 4-`
     # `grep -m 1` replaced with `grep ... | head -n1` since some older systems do not support the first option
     REPO_FOLDER=$(grep '<directory>' $MY_FILE | head -n1 | \
       sed -e 's| *<directory>||g' \
           -e 's|&#x2f;|/|g' \
           -e 's|</directory>.*||g')
+          
+         
     if [[ ! "${FOLDER}" = "${REPO_FOLDER}" ]]; then
       echo "${MY_FILE} -> FILESYSTEM: ${FOLDER} -> REPO: ${REPO_FOLDER}"
       STAT=1
@@ -283,7 +291,7 @@ function check_repo_path {
   done
 
   # restore IFS
-  IFS=${SAVEIFS}
+  # IFS=${SAVEIFS}
  
   if [ ${COUNTER} -gt 0 ]; then
     print_failed ${TEST_NAME}
