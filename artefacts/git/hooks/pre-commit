@@ -2,10 +2,10 @@
 SHELL_DIR=$(dirname $0)
 source ${SHELL_DIR}/settings.sh
 # check whether it is a config or code repository
-IS_CONFIG={{ IS_CONFIG }}
+IS_CONFIG=N
 # IS_CONFIG=N
 # check whether it is a file-based or repo-based PDI setup
-IS_REPO_BASED={{ IS_REPO_BASED }}
+IS_REPO_BASED=N
 #IS_REPO_BASED=N
 TEST_FAILED=" - Test - [\e[31m FAILED\e[39m ]"
 TEST_PASSED=" - Test - [\e[32m PASSED\e[39m ]"
@@ -52,27 +52,36 @@ PDI_KTR_AND_KJB_FILES=$(find pdi ! -type d -name '*ktr' -or -name '*kjb')
 # Check for non ASCII filenames
 function check_for_non_ascii_filenames {
  
-  TEST_NAME="ASCII Characters Filename Check"
-  print_header ${TEST_NAME}
- 
-  declare -i NUMBER_OF_NON_ASCII_FILE_NAMES=0
+  # create array to hold matched values
+  FILE_NAMES_WITH_NON_ASCII_CHARACTERS=()
+  # create counter for matched values
+  declare -i NUMBER_OF_FILE_NAMES_WITH_NON_ASCII_CHARACTERS=0
  
   # printable range starts at space character and ends with tilde
   # Note that the brackets around the tr range are required for portability
   # to Solari's /usr/bin/tr. The square bracket bytes happen to fall in
   # the designated space
-  NON_ASCII_FILE_NAMES=`echo ${FILE_LIST} | LC_ALL=C tr -d '[ -~]\0'`
-  NUMBER_OF_NON_ASCII_FILE_NAMES=`echo ${NON_ASCII_FILE_NAMES} | wc -w`
+
+
+  for FILE in ${FILE_LIST}
+  do
+    FILE_MATCH=$(echo ${FILE} | LC_ALL=C tr -d '[ -~]\0')
+    if [ -n "${FILE_MATCH}" ]
+    then
+      FILE_NAMES_WITH_NON_ASCII_CHARACTERS+=(${FILE_MATCH})
+      NUMBER_OF_FILE_NAMES_WITH_NON_ASCII_CHARACTERS+=1
+    fi
+  done
  
   
-  echo "Number of non ASCII file names: ${NUMBER_OF_NON_ASCII_FILE_NAMES}"
+  echo "Number of non ASCII file names: ${NUMBER_OF_FILE_NAMES_WITH_NON_ASCII_CHARACTERS}"
  
   # error message if unacceptable files present
-  if [ ${NUMBER_OF_NON_ASCII_FILE_NAMES} -gt 0 ]; then
+  if [ ${NUMBER_OF_FILE_NAMES_WITH_NON_ASCII_CHARACTERS} -gt 0 ]; then
     print_failed ${TEST_NAME}
     echo -e "\e[93mPlease only use ASCII characters for filenames!"
     echo -e "Following filenames contain non ASCII characters:"
-    echo -e "${NON_ASCII_FILE_NAMES}\n"
+    echo -e "${FILE_NAMES_WITH_NON_ASCII_CHARACTERS}\n"
     STAT=1
   else
     print_passed ${TEST_NAME}
@@ -87,10 +96,22 @@ function check_for_paths_with_whitespaces  {
   TEST_NAME="Whitespaces in File Paths"
   print_header ${TEST_NAME}
 
+  # create array to hold matched values
+  PATHS_WITH_WHITESPACES=()
+  # create counter for matched values
   declare -i NUMBER_OF_PATHS_WITH_WHITESPACES=0
 
-  PATHS_WITH_WHITESPACES=`find . -path pdi/.meta -prune -o -print | grep -E ".*\s.*"`
-  NUMBER_OF_PATHS_WITH_WHITESPACES=`echo ${PATHS_WITH_WHITESPACES} | wc -w`  
+  MY_FILE_LIST=$(find . -path pdi/.meta -prune -o -print)
+
+  for FILE in ${MY_FILE_LIST}
+  do
+    FILE_MATCH=$(echo ${FILE} | grep " ")
+    if [ -n "${FILE_MATCH}" ]
+    then
+      PATHS_WITH_WHITESPACES+=(${FILE_MATCH})
+      NUMBER_OF_PATHS_WITH_WHITESPACES+=1
+    fi
+  done 
 
   echo "Number of paths with whitespaces: ${NUMBER_OF_PATHS_WITH_WHITESPACES}"
 
@@ -112,18 +133,25 @@ function check_new_pdi_files_meet_naming_convention {
  
   TEST_NAME="Naming Convention"
   print_header ${TEST_NAME}
- 
+
+  # create array to hold matched values 
+  UNACCEPTABLE_PDI_FILES=()
+  # create counter for matched values
   declare -i NUMBER_OF_UNACCEPTABLE_PDI_FILES=0
  
   # Get a list of new files to be pushed
   # Check which transformations don't match with the following patterns:
   # jb_filename.kjb, tr_filename.ktr
-  UNACCPETABLE_NEW_PDI_FILES=$( echo ${FILE_LIST} | grep -Ev "(.*/)?tr\_[a-z0-9\_]+\.ktr$|(.*/)?jb\_[a-z0-9\_]+\.kjb$" | grep -E "ktr$|kjb$"|| (echo ""))
-   
-  # if the list is not empty ...
-  if [ ! -z "${UNACCPETABLE_NEW_PDI_FILES}" ]; then
-    NUMBER_OF_UNACCEPTABLE_PDI_FILES=$(echo ${UNACCPETABLE_NEW_PDI_FILES} | wc -w)
-  fi
+ 
+  for FILE in ${FILE_LIST}
+  do
+    FILE_MATCH=$(echo ${FILE} | grep -Ev "${PSGRS_PDI_ACCEPTED_JOB_OR_TRANSFORMATION_NAME}" | grep -E "ktr$|kjb$")
+    if [ -n "${FILE_MATCH}" ]
+    then
+      UNACCEPTABLE_PDI_FILES+=(${FILE_MATCH})
+      NUMBER_OF_UNACCEPTABLE_PDI_FILES+=1
+    fi
+  done
  
   echo "Number of unacceptable new PDI file names: ${NUMBER_OF_UNACCEPTABLE_PDI_FILES}"
  
@@ -150,26 +178,30 @@ function check_supported_file_type {
  
   TEST_NAME="Accepted File Type"
   print_header ${TEST_NAME}
+
+  # create array to hold matched values
+  NOT_SUPPORTED_NEW_FILES=()
+  # create counter for matched values
   declare -i NUMBER_OF_NOT_SUPPORTED_NEW_FILES=0
  
   # Get a list of new files to be pushed
   # Check if they match a list of accepted file extensions
   # Keep non matching ones
-  if [ ${IS_CONFIG} = "Y" ]; then
-    NOT_SUPPORTED_NEW_FILES=$(echo ${FILE_LIST} |
-      # non-accepted file types
-      grep --invert-match -E "${PSGRS_GIT_CONFIG_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX}"||
-      (echo ""))
-   else
-     NOT_SUPPORTED_NEW_FILES=$(echo ${FILE_LIST} |
-      # non-accepted file types
-      grep --invert-match -E "${PSGRS_GIT_CODE_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX}"||
-      (echo ""))
+  for FILE in ${FILE_LIST}
+  do
+    if [ ${IS_CONFIG} = "Y" ]
+    then
+      FILE_MATCH=$(echo ${FILE} | grep --invert-match -E "${PSGRS_GIT_CONFIG_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX}")
+    else
+      ILE_MATCH=$(echo ${FILE} | grep --invert-match -E "${PSGRS_GIT_CODE_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX}")
     fi
-  # if the list is not empty ...
-  if [ ! -z "${NOT_SUPPORTED_NEW_FILES}" ]; then
-    NUMBER_OF_NOT_SUPPORTED_NEW_FILES=$(echo $NOT_SUPPORTED_NEW_FILES | wc -w)
-  fi
+    
+    if [ -n "${FILE_MATCH}" ]
+    then
+      NOT_SUPPORTED_NEW_FILES+=(${FILE_MATCH})
+      NUMBER_OF_NOT_SUPPORTED_NEW_FILES+=1
+    fi
+  done
  
   echo "Number of files with not supported file types: ${NUMBER_OF_NOT_SUPPORTED_NEW_FILES}"
  
@@ -190,18 +222,25 @@ function check_filenames_are_lower_case {
 
   TEST_NAME="All File And Folder Names Are Lower Case And Without Whitespaces"
   print_header ${TEST_NAME}
- 
+
+  # create array to hold matched values
+  FILES_WITH_UPPER_CASES_OR_WHITESPACES=()
+  # create counter for matched values
   declare -i NUMBER_OF_FILES_WITH_UPPER_CASES_OR_WHITESPACES=0
+
  
-  # printable range starts at space character and ends with tilde
-  # Note that the brackets around the tr range are required for portability
-  # to Solari's /usr/bin/tr. The square bracket bytes happen to fall in
-  # the designated space
-  FILES_WITH_UPPER_CASES_OR_WHITESPACES=`echo ${FILE_LIST} | grep -Ev "^[a-z0-9\_-\./]+$"`
-  NUMBER_OF_FILES_WITH_UPPER_CASES_OR_WHITESPACES=`echo ${FILES_WITH_UPPER_CASES_OR_WHITESPACES} | wc -w`
- 
+  for FILE in ${FILE_LIST}
+  do
+    FILE_MATCH=$(echo ${FILE} | grep --invert-match -E "^[a-z0-9\_-\./]+$")
+    if [ -n "${FILE_MATCH}" ]
+    then
+      FILES_WITH_UPPER_CASES_OR_WHITESPACES+=(${FILE_MATCH})
+      NUMBER_OF_FILES_WITH_UPPER_CASES_OR_WHITESPACES+=1
+    fi
+  done
   
   echo "Number of files with upper case letters and/or whitespaces: ${NUMBER_OF_FILES_WITH_UPPER_CASES_OR_WHITESPACES}"
+
  
   # error message if unacceptable files present
   if [ ${NUMBER_OF_FILES_WITH_UPPER_CASES_OR_WHITESPACES} -gt 0 ]; then
@@ -225,12 +264,22 @@ function check_filenames_for_forbidden_keywords {
   TEST_NAME="File And Folder Names Do Not Contain ${PSGRS_FILE_OR_FOLDER_NAME_FORBIDDEN_KEYWORD}"
   print_header ${TEST_NAME}
  
+  # create array to hold matched values
+  FILES_WITH_FORBIDDEN_KEYWORD=()
+  # create counter for matched values
   declare -i NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD=0
+
  
-  FILES_WITH_FORBIDDEN_KEYWORD=`echo ${FILE_LIST} | grep -Ev "${PSGRS_FILE_OR_FOLDER_NAME_FORBIDDEN_KEYWORD}"`
-  NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD=`echo ${FILES_WITH_FORBIDDEN_KEYWORD} | wc -w`
- 
-  
+  for FILE in ${FILE_LIST}
+  do
+    FILE_MATCH=$(echo ${FILE} | grep -Ev "${PSGRS_FILE_OR_FOLDER_NAME_FORBIDDEN_KEYWORD}")
+    if [ -n "${FILE_MATCH}" ]
+    then
+      FILES_WITH_FORBIDDEN_KEYWORD+=(${FILE_MATCH})
+      NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD+=1
+    fi
+  done
+
   echo "Number of files with upper case letters and/or whitespaces: ${NUMBER_OF_FILES_WITH_FORBIDDEN_KEYWORD}"
  
   # error message if unacceptable files present
@@ -311,10 +360,13 @@ function check_hardcoded_ip {
   print_header ${TEST_NAME}
   cd ${GIT_ROOT_DIR}/pdi
  
-  FILES_WITH_HARDCODED_IP=""
+  # create array to hold matched values
+  FILES_WITH_HARDCODED_IP=()
+  # create counter for matched values
   declare -i NUMBER_OF_FILES_WITH_HARDCODED_IP=0
+
  
-  FILES_WITH_HARDCODED_IP=$(grep -Erl "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" .  || (echo ""))
+  FILES_WITH_HARDCODED_IP=$(grep -Erl "${PSGRS_PDI_IP_ADDRESS_REGEX}")
   # if the list is not empty ...
   if [ ! -z "${FILES_WITH_HARDCODED_IP}" ]; then
     NUMBER_OF_FILES_WITH_HARDCODED_IP=$(echo ${FILES_WITH_HARDCODED_IP} | wc -w )
@@ -341,11 +393,11 @@ function check_hard_coded_domain_name {
   print_header ${TEST_NAME}
   cd ${GIT_ROOT_DIR}/pdi
  
-  FILES_WITH_HARDCODED_DOMAIN_NAME=""
+  FILES_WITH_HARDCODED_DOMAIN_NAME=()
   declare -i NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME=0
   # older versions of PDI seems to escape colon and slashes in xml, newer versions not
   # we also make sure that you can define something like this: http://${VAR_NAME}
-  FILES_WITH_HARDCODED_DOMAIN_NAME=$(grep -Erl "(https&#x3a;&#x2f;&#x2f;[a-zA-Z]+)|(http&#x3a;&#x2f;&#x2f;[a-zA-Z]+)|(https\:\/\/[a-zA-Z]+)|(http\:\/\/[a-zA-Z]+)|(www\.[a-zA-Z]+)" .  || (echo ""))
+  FILES_WITH_HARDCODED_DOMAIN_NAME=$(grep -Erl "${PSGRS_PDI_DOMAIN_NAME_REGEX}" . )
   # if the list is not empty ...
   if [ ! -z "${FILES_WITH_HARDCODED_DOMAIN_NAME}" ]; then
     NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME=$(echo ${FILES_WITH_HARDCODED_DOMAIN_NAME} | wc -w )

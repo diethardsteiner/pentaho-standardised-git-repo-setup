@@ -2,8 +2,9 @@
  
 %define _topdir     ${PSGRS_RPM_BUILD_HOME}
 %define name        ${PSGRS_PROJECT_NAME}
-%define release     1 <-- [OPEN has to be replaced at run-time]
-%define version     1.01 <-- [OPEN has to be replaced at run-time]
+%define release     1 # <-- [OPEN has to be replaced at run-time]
+%define version     1.01 # <-- [OPEN has to be replaced at run-time]
+# SOURCE BOTH PARAM VALUES WHEN USER RUNS package-git-repo.sh
 %define buildroot   %{_topdir}/%{name}-%{version}-root
  
 BuildRoot:      %{buildroot}
@@ -50,25 +51,25 @@ rm -r %{buildroot}
 # Then we create the directories where the files go
 # don't worry if the directories exist on your target systems, rpm
 # creates if necessary
-mkdir -p %{buildroot}/opt/psgrs
+mkdir -p %{buildroot}/opt/${PSGRS_PROJECT_NAME}
 
 
-# install -p -m 755 %{_topdir}/BUILD/%{name}-%{version}/* %{buildroot}/opt/psgrs
-cp %{_topdir}/BUILD/%{name}-%{version}/* %{buildroot}/opt/psgrs
+# install -p -m 755 %{_topdir}/BUILD/%{name}-%{version}/* %{buildroot}/opt/${PSGRS_PROJECT_NAME}
+cp %{_topdir}/BUILD/%{name}-%{version}/* %{buildroot}/opt/${PSGRS_PROJECT_NAME}
 
 %clean
 rm -rf %{buildroot}
 
 
 %post
-echo "Installed %{name} scripts to /opt/psgrs"
+echo "Installed %{name} scripts to /opt/${PSGRS_PROJECT_NAME}"
 # Contains a list of the files that are part of the package
 # See useful directives such as attr here: http://www.rpm.org/max-rpm-snapshot/s1-rpm-specref-files-list-directives.html
 
 # list files or directories that should be bundled into the RPM
 # optionally set permissions
 %files
-/opt/psgrs
+/opt/${PSGRS_PROJECT_NAME}
 # set permissions
 #%defattr(-,root,root)
 #/usr/local/bin/wget

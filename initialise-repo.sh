@@ -345,8 +345,9 @@ function project_config {
     # rpm script
     mkdir -p utilities/build-rpm
 
-    cp ${PSGRS_SHELL_DIR}/artefacts/git/package-git-repo.sh \
-       ${PROJECT_CONFIG_DIR}/utilities/build-rpm
+    envsubst \
+      < ${PSGRS_SHELL_DIR}/artefacts/git/package-git-repo.sh \
+      > ${PROJECT_CONFIG_DIR}/utilities/build-rpm/package-git-repo.sh
 
     envsubst \
       < ${PSGRS_SHELL_DIR}/artefacts/utilities/build-rpm/template.spec \

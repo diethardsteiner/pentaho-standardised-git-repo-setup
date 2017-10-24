@@ -27,11 +27,17 @@ export PSGRS_GIT_REPO_ACCEPTED_BRANCH_NAMES_REGEX="^master$|^dev$|^feature\_.+|^
 export PSGRS_FILE_OR_FOLDER_NAME_FORBIDDEN_KEYWORD="(dev|test|beta|new|v[0-9]{1})"
 # regex specifying the accepted pdi parameter or variable name
 export PSGRS_PDI_ACCEPTED_PARAMETER_OR_VARIABLE_NAME="(^(VAR\_|PROP\_|PARAM\_)[A-Z0-9\_]+|^(Internal|awt|embedded|felix|file|https|java|karaf|log4j|org|sun|user|vfs)[a-zA-Z\.]+)"
+# regex specifying the accepted pdi job and transformation name
+export PSGRS_PDI_ACCEPTED_JOB_OR_TRANSFORMATION_NAME="(.*/)?tr\_[a-z0-9\_]+\.ktr$|(.*/)?jb\_[a-z0-9\_]+\.kjb$"
+# regex specifying the IP address match
+export PSGRS_PDI_IP_ADDRESS_REGEX="[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"
+# regex specifying the domain name match
+export PSGRS_PDI_DOMAIN_NAME_REGEX="(https&#x3a;&#x2f;&#x2f;[a-zA-Z]+)|(http&#x3a;&#x2f;&#x2f;[a-zA-Z]+)|(https\:\/\/[a-zA-Z]+)|(http\:\/\/[a-zA-Z]+)|(www\.[a-zA-Z]+)"
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
 ### RPM BUILD ###
 # directory which will hold the rpm build artefacts - should be within home dir
 export PSGRS_RPM_BUILD_HOME=${HOME}/psgrs
-# top level description that forms part of the rpm build
-export PSGRS_RPM_SUMMARY=
-# slightly longer description that forms part of the rpm build
-export PSGRS_RPM_DESCRIPTION=
+# top level description that forms part of the rpm build - use quotation marks
+export PSGRS_RPM_SUMMARY="A sample high level summary"
+# slightly longer description that forms part of the rpm build - use quotation marks
+export PSGRS_RPM_DESCRIPTION="A sample detailed description"

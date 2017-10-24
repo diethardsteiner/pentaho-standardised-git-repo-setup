@@ -118,23 +118,17 @@ if [ -d "${GIT_DIR}/rpmbuild" ]; then
   rm -r ${GIT_DIR}/rpmbuild
 fi
 
-# build RPM
+# BUILD RPM
 
-PSGRS_RPM_DIR=/tmp/psgrs
+PSGRS_SHELL_DIR=$(dirname $0)
 
-mkdir ${PSGRS_RPM_DIR}
-cd ${PSGRS_RPM_DIR}
+mkdir ${PSGRS_RPM_BUILD_HOME}
+cd ${PSGRS_RPM_BUILD_HOME}
 # create minimum required folders
 mkdir SOURCES SPECS BUILD RPMS SRPMS
 # copy tar file into source folder
 cp ${PACKAGE_FILE_PATH} SOURCES
 # copy spec file
-# [OPEN] this file has to be copied across to the project-code repo
-# [OPEN] spec file has to be customized before copying over
-#
-# [OPEN] version and release number has to be fed in locally here!
-# envsubst ...
-# only then we can reference the spec file
-# cp ??../template.spec SPECS
+cp ${PSGRS_SHELL_DIR}/template.spec SPECS
 # build rpm
-# rpmbuild -v -bb --clean SPECS/template.spec
+rpmbuild -v -bb --clean SPECS/template.spec
