@@ -133,7 +133,7 @@ function pdi_module {
     # cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${PDI_MODULES_DIR}/.git/hooks
     # we have to create a file so that the master branch is created
     echo "creating README file ..."
-    touch README.md
+    touch readme.md
     echo "adding module_1 sample module ..."
     cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/module_1 .
     git add --all
@@ -231,7 +231,7 @@ function project_code {
     touch sql/ddl/.gitignore
 
     echo "Creating basic README file ..."
-    echo "Documentation can be found in the dedicated documentation Git repo called ${PSGRS_PROJECT_NAME}-documentation" > README.md
+    echo "Documentation can be found in the dedicated documentation Git repo called ${PSGRS_PROJECT_NAME}-documentation" > readme.md
 
     if [ ${PSGRS_PDI_STORAGE_TYPE} = "file-repo" ]; then
       echo "Adding kettle db connection files ..."
@@ -345,9 +345,13 @@ function project_config {
     # rpm script
     mkdir -p utilities/build-rpm
 
-    envsubst \
-      < ${PSGRS_SHELL_DIR}/artefacts/git/package-git-repo.sh \
-      > ${PROJECT_CONFIG_DIR}/utilities/build-rpm/package-git-repo.sh
+    cp \
+      ${PSGRS_SHELL_DIR}/artefacts/git/package-git-repo.sh \
+      ${PROJECT_CONFIG_DIR}/utilities/build-rpm
+
+    cp \
+      ${PSGRS_SHELL_DIR}/config/settings.sh \
+      ${PROJECT_CONFIG_DIR}/utilities/build-rpm
 
     envsubst \
       < ${PSGRS_SHELL_DIR}/artefacts/utilities/build-rpm/template.spec \
@@ -355,7 +359,7 @@ function project_config {
 
 
     echo "Creating basic README file ..."
-    echo "Project specific configuration for ${PSGRS_ENV} environment." > ${PROJECT_CONFIG_DIR}/README.md  
+    echo "Project specific configuration for ${PSGRS_ENV} environment." > ${PROJECT_CONFIG_DIR}/readme.md  
 
     # enable pre-commit hook
     chmod 700 ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
@@ -451,7 +455,7 @@ function standalone_project_config {
 #     echo "Creating basic folder structure ..."
 #     mkdir pdi mdx mondrian-schemas pentaho-solutions sql
 #     echo "Creating basic README file ..."
-#     echo "Common code for ${PSGRS_ENV} environment. Find documentation in dedicated docu repo." > ${COMMON_CODE_DIR}/README.md
+#     echo "Common code for ${PSGRS_ENV} environment. Find documentation in dedicated docu repo." > ${COMMON_CODE_DIR}/readme.md
 #   fi
 # }
 
@@ -531,7 +535,7 @@ function common_config {
 
 
     echo "Creating basic README file ..."
-    echo "Common configuration for ${PSGRS_ENV} environment." > ${COMMON_CONFIG_DIR}/README.md
+    echo "Common configuration for ${PSGRS_ENV} environment." > ${COMMON_CONFIG_DIR}/readme.md
 
     echo ""
     echo "==============================="
@@ -575,7 +579,7 @@ function project_docu {
     echo "Initialising Git Repo ..."
     git init .
     echo "Creating basic README file ..."
-    echo "# Documentation for ${PSGRS_PROJECT_NAME}" > ${PROJECT_DOCU_DIR}/README.md
+    echo "# Documentation for ${PSGRS_PROJECT_NAME}" > ${PROJECT_DOCU_DIR}/readme.md
   fi
 }
 
@@ -598,7 +602,7 @@ function common_docu {
     echo "Initialising Git Repo ..."
     git init .
     echo "Creating basic README file ..."
-    echo "# Common Documentation" > ${COMMON_DOCU_DIR}/README.md
+    echo "# Common Documentation" > ${COMMON_DOCU_DIR}/readme.md
   fi
 }
 

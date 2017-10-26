@@ -272,7 +272,7 @@ function check_filenames_for_forbidden_keywords {
  
   for FILE in ${FILE_LIST}
   do
-    FILE_MATCH=$(echo ${FILE} | grep -Ev "${PSGRS_FILE_OR_FOLDER_NAME_FORBIDDEN_KEYWORD}")
+    FILE_MATCH=$(echo ${FILE} | grep -E "${PSGRS_FILE_OR_FOLDER_NAME_FORBIDDEN_KEYWORD}")
     if [ -n "${FILE_MATCH}" ]
     then
       FILES_WITH_FORBIDDEN_KEYWORD+=(${FILE_MATCH})

@@ -6,21 +6,27 @@
 # - PREFIX 
 # - PACKAGE_FILE_PATH: path to and filename of package file
 
-#read GIT_DIR VERSION PREFIX PACKAGE_FILE_PATH
+# read GIT_DIR VERSION PREFIX PACKAGE_FILE_PATH BUILD_RPM
 GIT_DIR=$1
 VERSION=$2
 PREFIX=$3
 PACKAGE_FILE_PATH=$4
+BUILD_RPM="Y"
 
 echo "Following parameter values were passed:"
 echo "GIT_DIR: ${GIT_DIR}"
 echo "VERSION: ${VERSION}"
 echo "PREFIX:  ${PREFIX}"
 echo "PACKAGE_FILE_PATH: ${PACKAGE_FILE_PATH}"
+echo "BUILD_RPM: ${BUILD_RPM}"
 
 # -----------------
-# EXAMPLE USAGE: ./package-git-repo.sh /tmp/test/mysampleproj-code 0.1 mysampleproj-code /tmp/mysampleproj-code.tar
+# EXAMPLE USAGE: ./package-git-repo.sh /tmp/test/mysampleproj-code 0.1 mysampleproj-code /tmp/mysampleproj-code.tar Y
 # -----------------
+
+PSGRS_SHELL_DIR=$(dirname $0)
+
+source ${PSGRS_SHELL_DIR}/settings.sh
 
 cd ${GIT_DIR}
 
@@ -120,15 +126,17 @@ fi
 
 # BUILD RPM
 
-PSGRS_SHELL_DIR=$(dirname $0)
+if [ ${BUILD_RPM} = "Y" ]
+then
 
-mkdir ${PSGRS_RPM_BUILD_HOME}
-cd ${PSGRS_RPM_BUILD_HOME}
-# create minimum required folders
-mkdir SOURCES SPECS BUILD RPMS SRPMS
-# copy tar file into source folder
-cp ${PACKAGE_FILE_PATH} SOURCES
-# copy spec file
-cp ${PSGRS_SHELL_DIR}/template.spec SPECS
-# build rpm
-rpmbuild -v -bb --clean SPECS/template.spec
+  mkdir ${PSGRS_RPM_BUILD_HOME}
+  cd ${PSGRS_RPM_BUILD_HOME}
+  # create minimum required folders
+  mkdir SOURCES SPECS BUILD RPMS SRPMS
+  # copy tar file into source folder
+  cp ${PACKAGE_FILE_PATH} SOURCES
+  # copy spec file
+  cp ${PSGRS_SHELL_DIR}/template.spec SPECS
+  # build rpm
+  rpmbuild -v -bb --clean SPECS/template.spec
+fi
