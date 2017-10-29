@@ -49,19 +49,21 @@ PDI_ENV=${PROJECT_GIT_FOLDER##*-}
 # Path to the root directory where the common and project specific git repos are stored in
 BASE_DIR=${PROJECT_GIT_DIR}/..
 # Path to the environment specific common configuration
-COMMON_CONFIG_HOME="${BASE_DIR}/common-config-${PDI-ENV}"
+COMMON_CONFIG_HOME="${BASE_DIR}/common-config-${PDI_ENV}"
 # workaround so that we can handle standalone projects as well
 if [ ! -d ${COMMON_CONFIG_HOME} ]; then 
   echo "No common config exists, so assuming it is a standalone project ..."
-  COMMON_CONFIG_HOME="${BASE_DIR}/${PROJECT_NAME}-config-${PDI-ENV}"
+  COMMON_CONFIG_HOME="${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}"
 fi
 # source common environment variables here so that they can be used straight away for project specifc variables
 source ${COMMON_CONFIG_HOME}/pdi/shell-scripts/set-env-variables.sh
 # is this project using a pdi repo setup or a file based one?
 if [ -f ${COMMON_CONFIG_HOME}/pdi/repositories.xml ]
 then
+    echo "repositories.xml does exist ... "
     IS_PDI_REPO_BASED="Y"
 else
+    echo "repositories.xml does not exist ..."
     IS_PDI_REPO_BASED="N"
 fi
 # Absolute path for home directory of project properties files
@@ -149,7 +151,7 @@ echo "Staring at: ${START_DATETIME}"
 cd ${PDI_DIR}
 
 
-if [ ${IS_PDI_REPO_BASED}="Y" ]
+if [ ${IS_PDI_REPO_BASED} = "Y" ]
 then
   ./kitchen.sh \
   -rep="${PDI_REPO_NAME}" \ 
