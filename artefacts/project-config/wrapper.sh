@@ -56,7 +56,14 @@ if [ ! -d ${COMMON_CONFIG_HOME} ]; then
   COMMON_CONFIG_HOME="${BASE_DIR}/${PROJECT_NAME}-config-${PDI-ENV}"
 fi
 # source common environment variables here so that they can be used straight away for project specifc variables
-source ${COMMON_CONFIG_HOME}/shell-scripts/set-env-variables.sh
+source ${COMMON_CONFIG_HOME}/pdi/shell-scripts/set-env-variables.sh
+# is this project using a pdi repo setup or a file based one?
+if [ -f ${COMMON_CONFIG_HOME}/pdi/repositories.xml ]
+then
+    IS_PDI_REPO_BASED="Y"
+else
+    IS_PDI_REPO_BASED="N"
+fi
 # Absolute path for home directory of project properties files
 PROJECT_CONFIG_HOME="${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}"
 # Absolute path for home directory of project log files
@@ -70,17 +77,17 @@ PROJECT_LOG_HOME="${LOG_DIR}/${PROJECT_NAME}/${PDI_ENV}"
 ##                      ______________________                        ##
 
 # PDI repo name
-PDI_REPO="yourRepoName"
+PDI_REPO_NAME="yourRepoName"
 # PDI user name
-PDI_USER="yourUserName"
+PDI_REPO_USER="yourUserName"
 # PDI password
-PDI_PASS="yourPassword"
+PDI_REPO_PASS="yourPassword"
 # PDI repo root dir: if your repo has a deep hierarchy and the first few levels do not hold any
 # files - this saves you from specifying always the full path for the job directory as well as
 # helps if the root directory is located in different levels on differnet environments
 # e.g. if in dev your project folder is in the root but in prod within /home/pentaho
-# so for prod set PDI_REPO_ROOT_DIR to /home/pentaho
-PDI_REPO_ROOT_DIR="/home/pentaho"
+# so for prod set PDI_REPO_MAIN_DIR_PATH to /home/pentaho
+PDI_REPO_MAIN_DIR_PATH="/home/pentaho"
 
 
 
@@ -91,18 +98,18 @@ PDI_REPO_ROOT_DIR="/home/pentaho"
 
 
 # PDI repo directory path
-PDI_ARTEFACT_DIRECTORY_PATH=${PDI_REPO_ROOT_DIR}/${JOB_HOME}
+PDI_ARTEFACT_DIRECTORY_PATH=${PDI_REPO_MAIN_DIR_PATH}/${JOB_HOME}
 # Project logs file name
 JOB_LOG_FILE="${JOB_NAME}.err.log"
 # Project historic logs filename
 JOB_LOG_HIST_FILE="${JOB_NAME}.hist.log"
 # Project properties file
-PROJECT_PROPERTIES_FILE="${PROJECT_CONFIG_HOME}/properties/${PROJECT_NAME}.properties"
+PROJECT_PROPERTIES_FILE="${PROJECT_CONFIG_HOME}/pdi/properties/${PROJECT_NAME}.properties"
 # Job properties file
-JOB_PROPERTIES_FILE="${PROJECT_CONFIG_HOME}/properties/${JOB_NAME}.properties"
+JOB_PROPERTIES_FILE="${PROJECT_CONFIG_HOME}/pdi/properties/${JOB_NAME}.properties"
 # PDI repo full path for home directory of wrapper job
 # --- [OPEN] --- Wrapper has to be part of the modules repo
-WRAPPER_JOB_HOME="${PDI_REPO_ROOT_DIR}/modules/master_wrapper"
+WRAPPER_JOB_HOME="${PDI_REPO_MAIN_DIR_PATH}/modules/master_wrapper"
 # PDI wrapper job name
 WRAPPER_JOB_NAME="jb_master_wrapper"
 
@@ -141,18 +148,31 @@ echo "Staring at: ${START_DATETIME}"
 
 cd ${PDI_DIR}
 
-./kitchen.sh \
--rep="${PDI_REP}" \
--user="${PDI_USER}" \
--pass="${PDI_PASS}" \
--dir="${WRAPPER_JOB_HOME}" \ 
--job="${WRAPPER_JOB_NAME}" \
--param:PARAM_PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
--param:PARAM_JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
--param:PARAM_JOB_NAME="${JOB_NAME}" \
--param:PARAM_TRANSFORMATION_NAME="" \
--param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PDI_ARTEFACT_DIRECTORY_PATH}" \
-> $PROJECT_LOG_HOME/$JOB_LOG_FILE 2>&1
+
+if [ ${IS_PDI_REPO_BASED}="Y" ]
+then
+  ./kitchen.sh \
+  -rep="${PDI_REPO_NAME}" \ 
+  -user="${PDI_REPO_USER}" \
+  -pass="${PDI_REPO_PASS}" \
+  -dir="${WRAPPER_JOB_HOME}" \ 
+  -job="${WRAPPER_JOB_NAME}" \
+  -param:PARAM_PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
+  -param:PARAM_JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
+  -param:PARAM_JOB_NAME="${JOB_NAME}" \
+  -param:PARAM_TRANSFORMATION_NAME="" \
+  -param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PDI_ARTEFACT_DIRECTORY_PATH}" \
+  > $PROJECT_LOG_HOME/$JOB_LOG_FILE 2>&1
+else
+  ./kitchen.sh \
+  -file="${WRAPPER_JOB_HOME}/${WRAPPER_JOB_NAME}" \
+  -param:PARAM_PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
+  -param:PARAM_JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
+  -param:PARAM_JOB_NAME="${JOB_NAME}" \
+  -param:PARAM_TRANSFORMATION_NAME="" \
+  -param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PDI_ARTEFACT_DIRECTORY_PATH}" \
+  > $PROJECT_LOG_HOME/$JOB_LOG_FILE 2>&1
+fi
 
 RES=$?
 

@@ -27,7 +27,7 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "        project_docu"
     echo "        common_docu"
     echo " "
-    echo "Optional arguments:"
+    echo "Mandatory arguments:"
     echo " "
     echo "-p  PROJECT NAME:  Lower case, only letters allowed, no underscores, dashes etc."
     echo "                   Minimum of 3 to a maximum of 20 letters."
@@ -215,27 +215,30 @@ function project_code {
     git checkout -b dev
     
     echo "Creating basic folder structure ..."
-    mkdir -p pdi/${PSGRS_PROJECT_NAME}
-    mkdir -p pentaho-server/metadata 
+    mkdir -p pdi/repo/${PSGRS_PROJECT_NAME}
+    mkdir -p pdi/sql/ddl
+    mkdir -p pentaho-server/repo
+    mkdir -p pentaho-server/metadata
     mkdir -p pentaho-server/mondrian
-    mkdir prd
-    mkdir shell-scripts
-    mkdir -p sql/ddl
+    mkdir -p pentaho-server/prd
+    mkdir -p shell-scripts
 
     # adding file so folders can be committed
-    touch pdi/${PSGRS_PROJECT_NAME}/.gitignore
+    touch pdi/repo/${PSGRS_PROJECT_NAME}/.gitignore
+    touch pdi/sql/ddl/.gitignore
+    touch pentaho-server/repo/.gitignore 
     touch pentaho-server/metadata/.gitignore 
     touch pentaho-server/mondrian/.gitignore
-    touch prd/.gitignore
-    touch shell-scripts/.gitignore
-    touch sql/ddl/.gitignore
+    touch pentaho-server/prd/.gitignore
+    touch shell-scripts/this-folder-contains-non-environment-specific-shell-files.md
+    
 
     echo "Creating basic README file ..."
     echo "Documentation can be found in the dedicated documentation Git repo called ${PSGRS_PROJECT_NAME}-documentation" > readme.md
 
     if [ ${PSGRS_PDI_STORAGE_TYPE} = "file-repo" ]; then
       echo "Adding kettle db connection files ..."
-      cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/*.kdb pdi
+      cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/*.kdb pdi/repo
     fi
     
     if [ ${PSGRS_PDI_STORAGE_TYPE} = "file-based" ]; then
@@ -245,15 +248,15 @@ function project_code {
     
     echo "Adding pdi modules as a git submodule ..."
     
-    git submodule add -b master ${PSGRS_MODULES_GIT_REPO_URL} pdi/modules
+    git submodule add -b master ${PSGRS_MODULES_GIT_REPO_URL} pdi/repo/modules
     git submodule init
     git submodule update
     
     echo "Setting branch for submodule ..."
     
-    cd pdi/modules
+    cd pdi/repo/modules
     git checkout master
-    cd ../..
+    cd ${PROJECT_CODE_DIR}
     
     echo "Committing new files ..."
     

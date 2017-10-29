@@ -74,7 +74,7 @@ Mandatory arguments
         project_docu
         common_docu
  
-Optional arguments:
+Mandatory arguments:
  
 -p  PROJECT NAME:  Lower case, only letters allowed, no underscores, dashes etc.
                    Minimum of 3 to a maximum of 20 letters.
