@@ -6,6 +6,9 @@
 ##                      ______________________                        ##
 
 
+## OPEN: order of parameters should be swapped since job dir can be empty
+## unless we require it to be set to /
+
 # environmental argument parameter
 if [ $# -eq 0 ] || [ -z "$1" ] || [ -z "$2" ]
   then
@@ -48,6 +51,8 @@ PROJECT_NAME=${PROJECT_GIT_FOLDER%%-*}
 PDI_ENV=${PROJECT_GIT_FOLDER##*-}
 # Path to the root directory where the common and project specific git repos are stored in
 BASE_DIR=${PROJECT_GIT_DIR}/..
+# build path for project code dir
+PROJECT_CODE_DIR=${BASE_DIR}/${PROJECT_NAME}-code
 # Path to the environment specific common configuration
 COMMON_CONFIG_HOME="${BASE_DIR}/common-config-${PDI_ENV}"
 # workaround so that we can handle standalone projects as well
@@ -114,6 +119,13 @@ JOB_PROPERTIES_FILE="${PROJECT_CONFIG_HOME}/pdi/properties/${JOB_NAME}.propertie
 WRAPPER_JOB_HOME="${PDI_REPO_MAIN_DIR_PATH}/modules/master_wrapper"
 # PDI wrapper job name
 WRAPPER_JOB_NAME="jb_master_wrapper"
+# get currently selected branche names
+cd ${COMMON_CONFIG_HOME}
+COMMON_CONFIG_HOME_BRANCH=`git branch`
+cd ${PROJECT_CONFIG_HOME}
+PROJECT_CONFIG_HOME_BRANCH=`git branch`
+cd ${PROJECT_CODE_DIR}
+PROJECT_CODE_DIR_BRANCH=`git branch`
 
 echo ""
 echo "-----------------------------------------------------------------------"
@@ -121,9 +133,9 @@ echo "Running script with the following environment variables:"
 echo
 echo "PDI Environment (PDI_ENV):                   ${PDI_ENV}"
 echo "Location of Kettle properties (KETTLE_HOME): ${KETTLE_HOME}"
-echo "Location of Common Configuration:            ${COMMON_CONFIG_HOME}   Branch: "
-echo "Location of Project Configuration:           ${PROJECT_CONFIG_HOME}  Branch: "
-echo "Location of Project Code:    Branch:  "
+echo "Location of Common Configuration:            ${COMMON_CONFIG_HOME}   Branch: ${COMMON_CONFIG_HOME_BRANCH}"
+echo "Location of Project Configuration:           ${PROJECT_CONFIG_HOME}  Branch: ${PROJECT_CONFIG_HOME_BRANCH}"
+echo "Location of Project Code:                    ${PROJECT_CODE_DIR}     Branch: ${PROJECT_CODE_DIR_BRANCH}"
 echo "Project Properties File Location:            ${PROJECT_PROPERTIES_FILE}"
 echo "Job Properties File Location:                ${JOB_PROPERTIES_FILE}"
 echo "Directory containing PDI installation:       ${PDI_DIR}"

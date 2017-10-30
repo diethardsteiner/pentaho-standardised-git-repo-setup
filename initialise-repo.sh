@@ -123,6 +123,8 @@ function pdi_module {
   PDI_MODULES_DIR=${PSGRS_BASE_DIR}/modules
   echo "PDI_MODULES_DIR: ${PDI_MODULES_DIR}" 
   if [ ! -d "${PDI_MODULES_DIR}" ]; then
+    echo "Creating and pointing to default git branch"
+    git checkout -b dev
     echo "Creating PDI modules folder ..."
     mkdir ${PDI_MODULES_DIR}
     cd ${PDI_MODULES_DIR}
@@ -153,6 +155,8 @@ function pdi_module_repo {
   PDI_MODULES_REPO_DIR=${PSGRS_BASE_DIR}/modules-pdi-repo
   echo "PDI_MODULES_REPO_DIR: ${PDI_MODULES_REPO_DIR}"
   if [ ! -d "${PDI_MODULES_REPO_DIR}" ]; then
+    echo "Creating and pointing to default git branch"
+    git checkout -b dev
     echo "Creating PDI modules repo folder ..."
     mkdir ${PDI_MODULES_REPO_DIR}
     echo "Initialising Git Repo ..."
@@ -285,6 +289,8 @@ function project_config {
   PROJECT_CONFIG_DIR=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-config-${PSGRS_ENV}
   echo "PROJECT_CONFIG_DIR: ${PROJECT_CONFIG_DIR}"
   if [ ! -d "${PROJECT_CONFIG_DIR}" ]; then 
+    echo "Creating and pointing to default git branch"
+    git checkout -b master
     echo "Creating project config folder ..."
     echo "location: ${PROJECT_CONFIG_DIR}" 
     mkdir ${PROJECT_CONFIG_DIR}
@@ -383,6 +389,9 @@ function standalone_project_config {
     echo "exiting ..."
     exit 1
   fi
+
+  echo "Creating and pointing to default git branch"
+  git checkout -b master
   
   project_config
 
@@ -476,6 +485,8 @@ function common_config {
   COMMON_CONFIG_DIR=${PSGRS_BASE_DIR}/common-config-${PSGRS_ENV}
   echo "COMMON_CONFIG_DIR: ${COMMON_CONFIG_DIR}"
   if [ ! -d "${COMMON_CONFIG_DIR}" ]; then 
+    echo "Creating and pointing to default git branch"
+    git checkout -b master
     echo "Creating common config folder ..."
     echo "location: ${COMMON_CONFIG_DIR}" 
     mkdir ${COMMON_CONFIG_DIR}
@@ -575,6 +586,8 @@ function project_docu {
   PROJECT_DOCU_DIR=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-documentation
   echo "PROJECT_DOCU_DIR: ${PROJECT_DOCU_DIR}"
   if [ ! -d "${PROJECT_DOCU_DIR}" ]; then 
+    echo "Creating and pointing to default git branch"
+    git checkout -b master
     echo "Creating project documentation folder ..."
     echo "location: ${PROJECT_DOCU_DIR}"
     mkdir ${PROJECT_DOCU_DIR}
@@ -598,6 +611,8 @@ function common_docu {
   COMMON_DOCU_DIR=${PSGRS_BASE_DIR}/common-documentation
   echo "COMMON_DOCU_DIR: ${COMMON_DOCU_DIR}"
   if [ ! -d "${COMMON_DOCU_DIR}" ]; then 
+    echo "Creating and pointing to default git branch"
+    git checkout -b master
     echo "Creating project documentation folder ..."
     echo "location: ${COMMON_DOCU_DIR}"
     mkdir ${COMMON_DOCU_DIR}
