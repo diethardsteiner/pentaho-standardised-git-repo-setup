@@ -6,9 +6,6 @@
 ##                      ______________________                        ##
 
 
-## OPEN: order of parameters should be swapped since job dir can be empty
-## unless we require it to be set to /
-
 # environmental argument parameter
 if [ $# -eq 0 ] || [ -z "$1" ] || [ -z "$2" ]
   then
@@ -19,7 +16,7 @@ if [ $# -eq 0 ] || [ -z "$1" ] || [ -z "$2" ]
     echo 
     echo "Mandatory arguments"
     echo
-    echo "JOB_HOME:         The path of the project's sub-folder in PDI repo where KJBs for this job are located"
+    echo "JOB_HOME:         The PDI repo path. Specify '/' if job located in root dir."
     echo "JOB_NAME:         The name of the target job to run from within the wrapper"
     echo
     echo "exiting ..."
@@ -50,9 +47,11 @@ PROJECT_NAME=${PROJECT_GIT_FOLDER%%-*}
 # Get substring from last `-` to the end
 PDI_ENV=${PROJECT_GIT_FOLDER##*-}
 # Path to the root directory where the common and project specific git repos are stored in
-BASE_DIR=${PROJECT_GIT_DIR}/..
+BASE_DIR=${PROJECT_GIT_DIR%/*}
 # build path for project code dir
-PROJECT_CODE_DIR=${BASE_DIR}/${PROJECT_NAME}-code
+PROJECT_CODE_DIR=${PROJECT_GIT_DIR%%-*}-code
+# path to di files root dir - used for file-based pdi approach 
+PROJECT_CODE_PDI_REPO_DIR=${PROJECT_CODE_DIR}/pdi/repo
 # Path to the environment specific common configuration
 COMMON_CONFIG_HOME="${BASE_DIR}/common-config-${PDI_ENV}"
 # workaround so that we can handle standalone projects as well
@@ -65,10 +64,11 @@ source ${COMMON_CONFIG_HOME}/pdi/shell-scripts/set-env-variables.sh
 # is this project using a pdi repo setup or a file based one?
 if [ -f ${COMMON_CONFIG_HOME}/pdi/repositories.xml ]
 then
-    echo "repositories.xml does exist ... "
+    echo "Note: repositories.xml does exist ... "
     IS_PDI_REPO_BASED="Y"
 else
-    echo "repositories.xml does not exist ..."
+    echo "Note: repositories.xml does not exist ... "
+    echo "... so assuming there is a file-based PDI setup in place."
     IS_PDI_REPO_BASED="N"
 fi
 # Absolute path for home directory of project properties files
@@ -94,7 +94,7 @@ PDI_REPO_PASS="yourPassword"
 # helps if the root directory is located in different levels on differnet environments
 # e.g. if in dev your project folder is in the root but in prod within /home/pentaho
 # so for prod set PDI_REPO_MAIN_DIR_PATH to /home/pentaho
-PDI_REPO_MAIN_DIR_PATH="/home/pentaho"
+PDI_REPO_MAIN_DIR_PATH=""
 
 
 
@@ -155,9 +155,8 @@ mkdir -p $PROJECT_LOG_HOME
 ##                      ______________________                        ##
 
 
-# [OPEN] This works for PDI repositories only
-
 START_DATETIME=`date '+%Y-%m-%d_%H-%M-%S'`
+START_UNIX_TIMESTAMP=`date "+%s"`
 echo "Staring at: ${START_DATETIME}"
 
 cd ${PDI_DIR}
@@ -176,37 +175,39 @@ then
   -param:PARAM_JOB_NAME="${JOB_NAME}" \
   -param:PARAM_TRANSFORMATION_NAME="" \
   -param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PDI_ARTEFACT_DIRECTORY_PATH}" \
-  > $PROJECT_LOG_HOME/$JOB_LOG_FILE 2>&1
+  > ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} 2>&1
 else
   ./kitchen.sh \
-  -file="${WRAPPER_JOB_HOME}/${WRAPPER_JOB_NAME}" \
+  -file="${PROJECT_CODE_PDI_REPO_DIR}/${WRAPPER_JOB_HOME}/${WRAPPER_JOB_NAME}.kjb" \
   -param:PARAM_PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
   -param:PARAM_JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
   -param:PARAM_JOB_NAME="${JOB_NAME}" \
   -param:PARAM_TRANSFORMATION_NAME="" \
-  -param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PDI_ARTEFACT_DIRECTORY_PATH}" \
-  > $PROJECT_LOG_HOME/$JOB_LOG_FILE 2>&1
+  -param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PROJECT_CODE_PDI_REPO_DIR}/${PDI_ARTEFACT_DIRECTORY_PATH}" \
+  > ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} 2>&1
 fi
 
 RES=$?
 
 END_DATETIME=`date '+%Y-%m-%d_%H-%M-%S'`
+END_UNIX_TIMESTAMP=`date "+%s"`
 echo
-echo "End DateTime: $END_DATETIME"
+echo "End DateTime: ${END_DATETIME}"
+
+
+DURATION_IN_SECONDS=`expr ${END_UNIX_TIMESTAMP} - ${START_UNIX_TIMESTAMP}`
+
 # Project historic logs filename
 JOB_LOG_HIST_FILE="${JOB_NAME}.hist.log"
 # Project archive logs filename
 PROJECT_LOG_ARCHIVE_FILE="${JOB_NAME}_${END_DATETIME}.err.log"
 
 # Get the duration in human-readable format
-DURATION=`cat $PROJECT_LOG_HOME/$JOB_LOG_FILE | grep "Processing ended after " | sed -n -e 's/^.*Processing ended after after //p'`
+DURATION=`grep "Processing ended after " ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} | sed -n -e 's/^.*Processing ended after after //p'`
 
-echo "Result: $RES"
-echo "Result: $RES" >> $PROJECT_LOG_HOME/$JOB_LOG_HIST_FILE
-# SECONDS calc missing
-echo "Start: $START_DATETIME END: $END_DATETIME Duration: ${SECONDS}s Result: $RES DurationHumanReadable: ${DURATION}" >> $PROJECT_LOG_HOME/$JOB_LOG_HIST_FILE
-cat $PROJECT_LOG_HOME/$JOB_LOG_FILE > $PROJECT_LOG_HOME/$PROJECT_LOG_ARCHIVE_FILE
+echo "Result: ${RES}"
+# DURATION_IN_SECONDS calc missing
+echo "Start: ${START_DATETIME} END: ${END_DATETIME} Duration: ${DURATION_IN_SECONDS}s Result: ${RES} DurationHumanReadable: ${DURATION}" >> ${PROJECT_LOG_HOME}/${JOB_LOG_HIST_FILE}
+cat ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} > ${PROJECT_LOG_HOME}/${PROJECT_LOG_ARCHIVE_FILE}
 
-echo "Script finished: $END_DATETIME"
-
-exit $RES
+exit ${RES}
