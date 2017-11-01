@@ -196,6 +196,8 @@ echo "End DateTime: ${END_DATETIME}"
 
 
 DURATION_IN_SECONDS=`expr ${END_UNIX_TIMESTAMP} - ${START_UNIX_TIMESTAMP}`
+#DURATION_IN_MINUTES=`echo "scale=0;${DURATION_IN_SECONDS}/60" | bc`
+DURATION_IN_SECONDS_MSG=`printf '%dh:%dm:%ds\n' $((${DURATION_IN_SECONDS}/(60*60))) $((${DURATION_IN_SECONDS}%(60*60)/60)) $((${DURATION_IN_SECONDS}%60))`
 
 # Project historic logs filename
 JOB_LOG_HIST_FILE="${JOB_NAME}.hist.log"
@@ -203,11 +205,11 @@ JOB_LOG_HIST_FILE="${JOB_NAME}.hist.log"
 PROJECT_LOG_ARCHIVE_FILE="${JOB_NAME}_${END_DATETIME}.err.log"
 
 # Get the duration in human-readable format
-DURATION=`grep "Processing ended after " ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} | sed -n -e 's/^.*Processing ended after after //p'`
+# DURATION=`grep "Processing ended after " ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} | sed -n -e 's/^.*Processing ended after after //p'`
 
 echo "Result: ${RES}"
 # DURATION_IN_SECONDS calc missing
-echo "Start: ${START_DATETIME} END: ${END_DATETIME} Duration: ${DURATION_IN_SECONDS}s Result: ${RES} DurationHumanReadable: ${DURATION}" >> ${PROJECT_LOG_HOME}/${JOB_LOG_HIST_FILE}
+echo "Start: ${START_DATETIME} END: ${END_DATETIME} Result: ${RES} Duration: ${DURATION_IN_SECONDS_MSG} - Duration in Seconds: ${DURATION_IN_SECONDS}s" >> ${PROJECT_LOG_HOME}/${JOB_LOG_HIST_FILE}
 cat ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} > ${PROJECT_LOG_HOME}/${PROJECT_LOG_ARCHIVE_FILE}
 
 exit ${RES}
