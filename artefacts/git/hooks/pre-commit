@@ -10,6 +10,7 @@ IS_REPO_BASED=N
 TEST_FAILED=" - Test - [\e[31m FAILED\e[39m ]"
 TEST_PASSED=" - Test - [\e[32m PASSED\e[39m ]"
 GIT_ROOT_DIR=`git rev-parse --show-toplevel`
+GIT_PDI_DIR=/pdi/repo
 declare -i STAT=0
 
 # color scales: http://misc.flogisoft.com/bash/tip_colors_and_formatting
@@ -309,7 +310,7 @@ function check_repo_path {
  
   TEST_NAME="Check Repo Paths"
   print_header ${TEST_NAME}
-  # cd ${GIT_ROOT_DIR}/pdi
+  # cd ${GIT_ROOT_DIR}${GIT_PDI_DIR}
   
   MY_FILES=$(echo ${PDI_KTR_AND_KJB_FILES})
  
@@ -358,32 +359,38 @@ function check_hardcoded_ip {
  
   TEST_NAME="Check Hardcoded IP"
   print_header ${TEST_NAME}
-  cd ${GIT_ROOT_DIR}/pdi
- 
-  # create array to hold matched values
-  FILES_WITH_HARDCODED_IP=()
-  # create counter for matched values
-  declare -i NUMBER_OF_FILES_WITH_HARDCODED_IP=0
 
- 
-  FILES_WITH_HARDCODED_IP=$(grep -Erl "${PSGRS_PDI_IP_ADDRESS_REGEX}")
-  # if the list is not empty ...
-  if [ ! -z "${FILES_WITH_HARDCODED_IP}" ]; then
-    NUMBER_OF_FILES_WITH_HARDCODED_IP=$(echo ${FILES_WITH_HARDCODED_IP} | wc -w )
+  if [ -d "${GIT_ROOT_DIR}${GIT_PDI_DIR}" ]
+  then
+
+    cd ${GIT_ROOT_DIR}${GIT_PDI_DIR}
+   
+    # create array to hold matched values
+    FILES_WITH_HARDCODED_IP=()
+    # create counter for matched values
+    declare -i NUMBER_OF_FILES_WITH_HARDCODED_IP=0
+
+   
+    FILES_WITH_HARDCODED_IP=$(grep -Erl "${PSGRS_PDI_IP_ADDRESS_REGEX}")
+    # if the list is not empty ...
+    if [ ! -z "${FILES_WITH_HARDCODED_IP}" ]; then
+      NUMBER_OF_FILES_WITH_HARDCODED_IP=$(echo ${FILES_WITH_HARDCODED_IP} | wc -w )
+    fi
+   
+    echo "Number of files PDI files with hardcoded IP addresses: ${NUMBER_OF_FILES_WITH_HARDCODED_IP}"
+   
+    # error message if unacceptable files present
+    if [ ${NUMBER_OF_FILES_WITH_HARDCODED_IP} -gt 0 ]; then
+      print_failed ${TEST_NAME}
+      echo -e "\e[93mThe following filename(s) do have hard code IP addresses:\e[39m"
+      echo -e "${FILES_WITH_HARDCODED_IP}\n"
+      STAT=1
+    else
+      print_passed ${TEST_NAME}
+    fi
+    return ${STAT}
+
   fi
- 
-  echo "Number of files PDI files with hardcoded IP addresses: ${NUMBER_OF_FILES_WITH_HARDCODED_IP}"
- 
-  # error message if unacceptable files present
-  if [ ${NUMBER_OF_FILES_WITH_HARDCODED_IP} -gt 0 ]; then
-    print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following filename(s) do have hard code IP addresses:\e[39m"
-    echo -e "${FILES_WITH_HARDCODED_IP}\n"
-    STAT=1
-  else
-    print_passed ${TEST_NAME}
-  fi
-  return ${STAT}
 }
  
 # Check for PDI files with hardcoded domain name
@@ -391,30 +398,37 @@ function check_hard_coded_domain_name {
  
   TEST_NAME="Check Domain Name"
   print_header ${TEST_NAME}
-  cd ${GIT_ROOT_DIR}/pdi
- 
-  FILES_WITH_HARDCODED_DOMAIN_NAME=()
-  declare -i NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME=0
-  # older versions of PDI seems to escape colon and slashes in xml, newer versions not
-  # we also make sure that you can define something like this: http://${VAR_NAME}
-  FILES_WITH_HARDCODED_DOMAIN_NAME=$(grep -Erl "${PSGRS_PDI_DOMAIN_NAME_REGEX}" . )
-  # if the list is not empty ...
-  if [ ! -z "${FILES_WITH_HARDCODED_DOMAIN_NAME}" ]; then
-    NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME=$(echo ${FILES_WITH_HARDCODED_DOMAIN_NAME} | wc -w )
+
+
+  if [ -d "${GIT_ROOT_DIR}${GIT_PDI_DIR}" ]
+  then
+
+    cd ${GIT_ROOT_DIR}${GIT_PDI_DIR}
+   
+    FILES_WITH_HARDCODED_DOMAIN_NAME=()
+    declare -i NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME=0
+    # older versions of PDI seems to escape colon and slashes in xml, newer versions not
+    # we also make sure that you can define something like this: http://${VAR_NAME}
+    FILES_WITH_HARDCODED_DOMAIN_NAME=$(grep -Erl "${PSGRS_PDI_DOMAIN_NAME_REGEX}" . )
+    # if the list is not empty ...
+    if [ ! -z "${FILES_WITH_HARDCODED_DOMAIN_NAME}" ]; then
+      NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME=$(echo ${FILES_WITH_HARDCODED_DOMAIN_NAME} | wc -w )
+    fi
+   
+    echo "Number of PDI files with hardcoded domain names: ${NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME}"
+   
+    # error message if unacceptable files present
+    if [ ${NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME} -gt 0 ]; then
+      print_failed ${TEST_NAME}
+      echo -e "\e[93mThe following filename(s) do have hard code Domain Names:\e[39m"
+      echo -e "${FILES_WITH_HARDCODED_DOMAIN_NAME}\n"
+      STAT=1
+    else
+      print_passed ${TEST_NAME}
+    fi
+    return ${STAT}
+
   fi
- 
-  echo "Number of PDI files with hardcoded domain names: ${NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME}"
- 
-  # error message if unacceptable files present
-  if [ ${NUMBER_OF_FILES_WITH_HARDCODED_DOMAIN_NAME} -gt 0 ]; then
-    print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following filename(s) do have hard code Domain Names:\e[39m"
-    echo -e "${FILES_WITH_HARDCODED_DOMAIN_NAME}\n"
-    STAT=1
-  else
-    print_passed ${TEST_NAME}
-  fi
-  return ${STAT}
 }
  
  
@@ -423,54 +437,59 @@ function check_referenced_database_are_part_of_the_project {
  
   TEST_NAME="Check Referenced Databases Are Part of the Project"
   print_header ${TEST_NAME}
-  cd ${GIT_ROOT_DIR}/pdi
- 
-  FILES_WITH_DB_CONNECTION_REFERENCE=$(grep -Erl ".*<connection>.*?</connection>.*" --include="*.kjb" --include="*.ktr" --include="*.kdb" .  || (echo ""))
- 
-  declare -i FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER=0
-  FILES_WITH_INVALID_DB_CONNECTION_REFERENCE=()
 
-  # change internal file separator so that spaces in file and folder names
-  # dont cause havoc
-  SAVEIFS=${IFS}
-  IFS=$(echo -en "\n\b")
- 
-  for FILE_WITH_DB_CONNECTION_REFERENCE in ${FILES_WITH_DB_CONNECTION_REFERENCE}
-  do
-    # allowed database names specified at the end here - should be externalised in the long term
-    CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "")
-    LOCAL_COUNTER=$(echo ${CONNECTIONS} | grep -cvE "${PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX}")
-    if [ ${LOCAL_COUNTER} -gt 0 ]; then
-      FILES_WITH_INVALID_DB_CONNECTION_REFERENCE+=(${FILE_WITH_DB_CONNECTION_REFERENCE})
-      FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER+=1
- 
-      echo "${FILE_WITH_DB_CONNECTION_REFERENCE} has a non-project specific connection: "
-      echo ${CONNECTIONS} | grep -vE "${PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX}"
- 
-    fi
-  done
+  if [ -d "${GIT_ROOT_DIR}${GIT_PDI_DIR}" ]
+  then
 
-  # restore IFS
-  IFS=${SAVEIFS}
- 
- 
-  echo "Number of files with non-project specific database connection references: ${FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER}"
-  # echo "Number of unacceptable files: ${#FILES_WITH_INVALID_DB_CONNECTION_REFERENCE[*]}"
-  # error message if unacceptable files present
-  if [ ${FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER} -gt 0 ]; then
-    print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following filename(s) do have invalid DB references:\e[39m"
- 
- 
-    for ITEM in ${FILES_WITH_INVALID_DB_CONNECTION_REFERENCE[*]}
+    cd ${GIT_ROOT_DIR}${GIT_PDI_DIR}
+   
+    FILES_WITH_DB_CONNECTION_REFERENCE=$(grep -Erl ".*<connection>.*?</connection>.*" --include="*.kjb" --include="*.ktr" --include="*.kdb" .  || (echo ""))
+   
+    declare -i FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER=0
+    FILES_WITH_INVALID_DB_CONNECTION_REFERENCE=()
+
+    # change internal file separator so that spaces in file and folder names
+    # dont cause havoc
+    SAVEIFS=${IFS}
+    IFS=$(echo -en "\n\b")
+   
+    for FILE_WITH_DB_CONNECTION_REFERENCE in ${FILES_WITH_DB_CONNECTION_REFERENCE}
     do
-      echo -e "${ITEM}"
+      # allowed database names specified at the end here - should be externalised in the long term
+      CONNECTIONS=$(grep -E ".*<connection>.*?</connection>.*" ${FILE_WITH_DB_CONNECTION_REFERENCE} | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -v "")
+      LOCAL_COUNTER=$(echo ${CONNECTIONS} | grep -cvE "${PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX}")
+      if [ ${LOCAL_COUNTER} -gt 0 ]; then
+        FILES_WITH_INVALID_DB_CONNECTION_REFERENCE+=(${FILE_WITH_DB_CONNECTION_REFERENCE})
+        FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER+=1
+   
+        echo "${FILE_WITH_DB_CONNECTION_REFERENCE} has a non-project specific connection: "
+        echo ${CONNECTIONS} | grep -vE "${PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX}"
+   
+      fi
     done
-    STAT=1
-  else
-    print_passed ${TEST_NAME}
+
+    # restore IFS
+    IFS=${SAVEIFS}
+   
+   
+    echo "Number of files with non-project specific database connection references: ${FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER}"
+    # echo "Number of unacceptable files: ${#FILES_WITH_INVALID_DB_CONNECTION_REFERENCE[*]}"
+    # error message if unacceptable files present
+    if [ ${FILES_WITH_DB_CONNECTION_REFERENCE_COUNTER} -gt 0 ]; then
+      print_failed ${TEST_NAME}
+      echo -e "\e[93mThe following filename(s) do have invalid DB references:\e[39m"
+   
+   
+      for ITEM in ${FILES_WITH_INVALID_DB_CONNECTION_REFERENCE[*]}
+      do
+        echo -e "${ITEM}"
+      done
+      STAT=1
+    else
+      print_passed ${TEST_NAME}
+    fi
+    return ${STAT}
   fi
-  return ${STAT}
 }
 
 
@@ -478,54 +497,60 @@ function check_parameters_and_variables_follow_naming_convention {
 
   TEST_NAME="Parameters and Variables Follow Naming Convetion"
   print_header ${TEST_NAME}
-  cd ${GIT_ROOT_DIR}/pdi
- 
-  FILES_WITH_PARAMETERS=$(grep -Erl "\\$\{" .   || (echo ""))
- 
-  declare -i FILES_WITH_PARAMETERS_COUNTER=0
-  FILE_WITH_INVALID_PARAMETERS=()
 
-  # change internal file separator so that spaces in file and folder names
-  # dont cause havoc
-  SAVEIFS=${IFS}
-  IFS=$(echo -en "\n\b")
- 
-  for FILE_WITH_PARAMETERS in ${FILES_WITH_PARAMETERS}
-  do
-    # allowed parameter names specified at the end here - should be externalised in the long term
-    PARAMS_LIST=$(grep -E "\\$\{" ${FILE_WITH_PARAMETERS} | cut -d'{' -f2 | cut -d'}' -f1)
-    LOCAL_COUNTER=$(echo ${PARAMS_LIST} | grep -Evc "${PSGRS_PDI_ACCEPTED_PARAMETER_OR_VARIABLE_NAME}")
-    if [ ${LOCAL_COUNTER} -gt 0 ]; then
-      FILE_WITH_INVALID_PARAMETERS+=(${FILE_WITH_PARAMETERS})
-      FILES_WITH_PARAMETERS_COUNTER+=1
- 
-      echo "${FILE_WITH_PARAMETERS} has a non-project specific connection: "
-      echo ${PARAMS_LIST} | grep -Ev "${PSGRS_PDI_ACCEPTED_PARAMETER_OR_VARIABLE_NAME}"
- 
-    fi
-  done
+  if [ -d "${GIT_ROOT_DIR}${GIT_PDI_DIR}" ]
+  then
 
-  # restore IFS
-  IFS=${SAVEIFS}
- 
- 
-  echo "Number of files with non valid parameters: ${FILES_WITH_PARAMETERS_COUNTER}"
-  # echo "Number of unacceptable files: ${#FILE_WITH_INVALID_PARAMETERS[*]}"
-  # error message if unacceptable files present
-  if [ ${FILES_WITH_PARAMETERS_COUNTER} -gt 0 ]; then
-    print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following filename(s) do not have valid parameter names:\e[39m"
- 
- 
-    for ITEM in ${FILE_WITH_INVALID_PARAMETERS[*]}
+    cd ${GIT_ROOT_DIR}${GIT_PDI_DIR}
+   
+    FILES_WITH_PARAMETERS=$(grep -Erl "\\$\{" .   || (echo ""))
+   
+    declare -i FILES_WITH_PARAMETERS_COUNTER=0
+    FILE_WITH_INVALID_PARAMETERS=()
+
+    # change internal file separator so that spaces in file and folder names
+    # dont cause havoc
+    SAVEIFS=${IFS}
+    IFS=$(echo -en "\n\b")
+   
+    for FILE_WITH_PARAMETERS in ${FILES_WITH_PARAMETERS}
     do
-      echo -e "${ITEM}"
+      # allowed parameter names specified at the end here - should be externalised in the long term
+      PARAMS_LIST=$(grep -E "\\$\{" ${FILE_WITH_PARAMETERS} | cut -d'{' -f2 | cut -d'}' -f1)
+      LOCAL_COUNTER=$(echo ${PARAMS_LIST} | grep -Evc "${PSGRS_PDI_ACCEPTED_PARAMETER_OR_VARIABLE_NAME}")
+      if [ ${LOCAL_COUNTER} -gt 0 ]; then
+        FILE_WITH_INVALID_PARAMETERS+=(${FILE_WITH_PARAMETERS})
+        FILES_WITH_PARAMETERS_COUNTER+=1
+   
+        echo "${FILE_WITH_PARAMETERS} has a non-project specific connection: "
+        echo ${PARAMS_LIST} | grep -Ev "${PSGRS_PDI_ACCEPTED_PARAMETER_OR_VARIABLE_NAME}"
+   
+      fi
     done
-    STAT=1
-  else
-    print_passed ${TEST_NAME}
+
+    # restore IFS
+    IFS=${SAVEIFS}
+   
+   
+    echo "Number of files with non valid parameters: ${FILES_WITH_PARAMETERS_COUNTER}"
+    # echo "Number of unacceptable files: ${#FILE_WITH_INVALID_PARAMETERS[*]}"
+    # error message if unacceptable files present
+    if [ ${FILES_WITH_PARAMETERS_COUNTER} -gt 0 ]; then
+      print_failed ${TEST_NAME}
+      echo -e "\e[93mThe following filename(s) do not have valid parameter names:\e[39m"
+   
+   
+      for ITEM in ${FILE_WITH_INVALID_PARAMETERS[*]}
+      do
+        echo -e "${ITEM}"
+      done
+      STAT=1
+    else
+      print_passed ${TEST_NAME}
+    fi
+    return ${STAT}
+
   fi
-  return ${STAT}
 
 }
  
@@ -568,52 +593,58 @@ function check_defined_database_connections_are_part_of_the_project {
  
   TEST_NAME="Check Defined Databases Are Part of the Project"
   print_header ${TEST_NAME}
-  cd ${GIT_ROOT_DIR}/pdi
- 
-  # get connection references that do not match a predefined list
-  # grep -Erl "<connection>" -A+1 . | grep "<name>" | cut -d'>' -f2 | cut -d'<' -f1 | grep -cvE "hive_generic|impala_generic|mysql_process_control"
-  # grep -Er "<connection>.*?</connection>" .
- 
-  FILES_WITH_DB_CONNECTION_DEFINITION=$(grep -Erl "*.<connection>*." || (echo ""))
- 
-  declare -i FILES_WITH_DB_CONNECTION_DEFINITION_COUNTER=0
-  FILES_WITH_INVALID_DB_CONNECTION_DEFINITION=()
 
-  # change internal file separator so that spaces in file and folder names
-  # dont cause havoc
-  SAVEIFS=${IFS}
-  IFS=$(echo -en "\n\b")
+  if [ -d "${GIT_ROOT_DIR}${GIT_PDI_DIR}" ]
+  then
 
-  for FILE_WITH_DB_CONNECTION_REFERENCE in ${FILES_WITH_DB_CONNECTION_DEFINITION}
-  do
-    LOCAL_COUNTER=$(grep -E "*.<connection>*." -A+1 ${FILE_WITH_DB_CONNECTION_REFERENCE}  | grep "*.<name>*." | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -cvE "hive_generic|impala_generic|mysql_process_control")
-    if [ ${LOCAL_COUNTER} -gt 0 ]; then
-      FILES_WITH_INVALID_DB_CONNECTION_DEFINITION+=(${FILE_WITH_DB_CONNECTION_REFERENCE})
-      FILES_WITH_DB_CONNECTION_DEFINITION_COUNTER+=1
-    fi   
-  done
+    cd ${GIT_ROOT_DIR}${GIT_PDI_DIR}
+   
+    # get connection references that do not match a predefined list
+    # grep -Erl "<connection>" -A+1 . | grep "<name>" | cut -d'>' -f2 | cut -d'<' -f1 | grep -cvE "hive_generic|impala_generic|mysql_process_control"
+    # grep -Er "<connection>.*?</connection>" .
+   
+    FILES_WITH_DB_CONNECTION_DEFINITION=$(grep -Erl "*.<connection>*." || (echo ""))
+   
+    declare -i FILES_WITH_DB_CONNECTION_DEFINITION_COUNTER=0
+    FILES_WITH_INVALID_DB_CONNECTION_DEFINITION=()
 
-  # restore IFS
-  IFS=${SAVEIFS}
- 
- 
-  echo "Number of files with project unrelated database definitions: ${FILES_WITH_DB_CONNECTION_DEFINITION_COUNTER}"
-  # echo "Number of unacceptable files: ${#FILES_WITH_INVALID_DB_CONNECTION_DEFINITION[*]}"
-  # error message if unacceptable files present
-  if [ ${FILES_WITH_DB_CONNECTION_DEFINITION_COUNTER} -gt 0 ]; then
-    print_failed ${TEST_NAME}
-    echo -e "\e[93mThe following filename(s) do have invalid DB connection definitions:\e[39m"
- 
- 
-    for ITEM in ${FILES_WITH_INVALID_DB_CONNECTION_DEFINITION[*]}
+    # change internal file separator so that spaces in file and folder names
+    # dont cause havoc
+    SAVEIFS=${IFS}
+    IFS=$(echo -en "\n\b")
+
+    for FILE_WITH_DB_CONNECTION_REFERENCE in ${FILES_WITH_DB_CONNECTION_DEFINITION}
     do
-      echo -e "${ITEM}"
+      LOCAL_COUNTER=$(grep -E "*.<connection>*." -A+1 ${FILE_WITH_DB_CONNECTION_REFERENCE}  | grep "*.<name>*." | cut -d'>' -f2 | cut -d'<' -f1 | sort -u | grep -cvE "hive_generic|impala_generic|mysql_process_control")
+      if [ ${LOCAL_COUNTER} -gt 0 ]; then
+        FILES_WITH_INVALID_DB_CONNECTION_DEFINITION+=(${FILE_WITH_DB_CONNECTION_REFERENCE})
+        FILES_WITH_DB_CONNECTION_DEFINITION_COUNTER+=1
+      fi   
     done
-    STAT=1
-  else
-    print_passed ${TEST_NAME}
+
+    # restore IFS
+    IFS=${SAVEIFS}
+   
+   
+    echo "Number of files with project unrelated database definitions: ${FILES_WITH_DB_CONNECTION_DEFINITION_COUNTER}"
+    # echo "Number of unacceptable files: ${#FILES_WITH_INVALID_DB_CONNECTION_DEFINITION[*]}"
+    # error message if unacceptable files present
+    if [ ${FILES_WITH_DB_CONNECTION_DEFINITION_COUNTER} -gt 0 ]; then
+      print_failed ${TEST_NAME}
+      echo -e "\e[93mThe following filename(s) do have invalid DB connection definitions:\e[39m"
+   
+   
+      for ITEM in ${FILES_WITH_INVALID_DB_CONNECTION_DEFINITION[*]}
+      do
+        echo -e "${ITEM}"
+      done
+      STAT=1
+    else
+      print_passed ${TEST_NAME}
+    fi
+    return ${STAT}
+
   fi
-  return ${STAT}
 }
 
 

@@ -172,7 +172,7 @@ function pdi_module_repo {
     git submodule init
     git submodule update
 
-    # enable pre-commit hook
+    # enable pre-commit hook - do not currently work with modules repo since it is has one level less
     # chmod 700 ${PDI_MODULES_REPO_DIR}/.git/hooks/pre-commit
 
   fi 
@@ -196,6 +196,7 @@ function project_code {
     echo "location: ${PROJECT_CODE_DIR}" 
     mkdir ${PROJECT_CODE_DIR}
     cd ${PROJECT_CODE_DIR}
+
     echo "Initialising Git Repo ..."
     git init .
 
@@ -215,8 +216,9 @@ function project_code {
         -i ${PROJECT_CODE_DIR}/.git/hooks/pre-commit
     fi
 
+
     echo "Creating and pointing to default git branch"
-    git checkout -b dev
+    git checkout -b dev 
     
     echo "Creating basic folder structure ..."
     mkdir -p pdi/repo/${PSGRS_PROJECT_NAME}
@@ -249,23 +251,23 @@ function project_code {
       # nothing to do: shared.xml is part of .kettle, which lives in the config repo
       echo ""
     fi
-    
+
     echo "Adding pdi modules as a git submodule ..."
     
     git submodule add -b master ${PSGRS_MODULES_GIT_REPO_URL} pdi/repo/modules
     git submodule init
     git submodule update
-    
-    echo "Setting branch for submodule ..."
-    
-    cd pdi/repo/modules
-    git checkout master
-    cd ${PROJECT_CODE_DIR}
-    
-    echo "Committing new files ..."
-    
+
+    # echo "Setting branch for submodule ..."
+    # cd pdi/repo/modules
+    # git checkout master
+
+
+    # committing new files
     git add --all
     git commit -am "initial commit"
+
+    cd ${PROJECT_CODE_DIR}
 
     # enable pre-commit hook
     chmod 700 ${PROJECT_CODE_DIR}/.git/hooks/pre-commit
@@ -289,6 +291,7 @@ function project_config {
   PROJECT_CONFIG_DIR=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-config-${PSGRS_ENV}
   echo "PROJECT_CONFIG_DIR: ${PROJECT_CONFIG_DIR}"
   if [ ! -d "${PROJECT_CONFIG_DIR}" ]; then 
+    cd ${PROJECT_CONFIG_DIR}
     echo "Creating and pointing to default git branch"
     git checkout -b master
     echo "Creating project config folder ..."
@@ -370,9 +373,14 @@ function project_config {
     echo "Creating basic README file ..."
     echo "Project specific configuration for ${PSGRS_ENV} environment." > ${PROJECT_CONFIG_DIR}/readme.md  
 
+    # commit new files
+    git add --all
+    git commit -am "initial commit"
+
     # enable pre-commit hook
     chmod 700 ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
     chmod 700 ${PROJECT_CONFIG_DIR}/.git/hooks/settings.sh
+
 
   fi
 }
@@ -390,9 +398,6 @@ function standalone_project_config {
     exit 1
   fi
 
-  echo "Creating and pointing to default git branch"
-  git checkout -b master
-  
   project_config
 
   mkdir -p pdi/.kettle
@@ -430,6 +435,19 @@ function standalone_project_config {
 
   cp ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/.spoonrc \
        ${PROJECT_CONFIG_DIR}/pdi/.kettle
+
+  # disable pre-commit hook
+  chmod 400 ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
+  chmod 400 ${PROJECT_CONFIG_DIR}/.git/hooks/settings.sh
+
+
+  # commit new files
+  git add --all
+  git commit -am "initial commit"
+
+  # enable pre-commit hook
+  chmod 700 ${PROJECT_CONFIG_DIR}/.git/hooks/pre-commit
+  chmod 700 ${PROJECT_CONFIG_DIR}/.git/hooks/settings.sh
 
   echo ""
   echo "==============================="
@@ -547,6 +565,9 @@ function common_config {
     chmod 700 ${COMMON_CONFIG_DIR}/.git/hooks/pre-commit
     chmod 700 ${COMMON_CONFIG_DIR}/.git/hooks/settings.sh
 
+    # commit new files
+    git add --all
+    git commit -am "initial commit"
 
     echo "Creating basic README file ..."
     echo "Common configuration for ${PSGRS_ENV} environment." > ${COMMON_CONFIG_DIR}/readme.md
@@ -596,6 +617,11 @@ function project_docu {
     git init .
     echo "Creating basic README file ..."
     echo "# Documentation for ${PSGRS_PROJECT_NAME}" > ${PROJECT_DOCU_DIR}/readme.md
+
+    # commit new files
+    git add --all
+    git commit -am "initial commit"
+
   fi
 }
 
@@ -621,23 +647,31 @@ function common_docu {
     git init .
     echo "Creating basic README file ..."
     echo "# Common Documentation" > ${COMMON_DOCU_DIR}/readme.md
+
+    # commit new files
+    git add --all
+    git commit -am "initial commit"
+
   fi
 }
 
 
 
 if [ ${PSGRS_ACTION} = "1" ]; then 
-  project_code
   project_config
   common_config
   common_docu
   project_docu
+  # had to place this at the end since for some reason the branch gets always reset to master
+  # maybe has something to do with the submodules being sorced and this taking a bit
+  # while the main process continues?
+  project_code
 fi
 
 if [ ${PSGRS_ACTION} = "2" ]; then 
-  project_code
   standalone_project_config
   project_docu
+  project_code
 fi
 
 if [ ${PSGRS_ACTION} = "pdi_module" ]; then 
