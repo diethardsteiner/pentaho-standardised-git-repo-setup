@@ -20,7 +20,13 @@ Next have to change the following file **for each project and environment** that
 
 - `config/settings.sh`: Read comments in file to understand what the settings mean.
 
-> **Note**: If the `MODULES_GIT_REPO_URL` repo is not present yet, use the `initialise-repo.sh` to create it and push it to your Git Server (GitHub, etc). Then adjust the configuration.
+> **Note** on `MODULES_GIT_REPO_URL`: If you do not have a repo yet for the PDI modules (reusable code), use the `initialise-repo.sh` to create it and push it to your Git Server (GitHub, etc). Then adjust the configuration.
+
+There are also some artefacts that are corrently not controlled by the central settings file, e.g. Spoon settings, located in:
+
+```
+aretefacts/pdi/.kettle/.spoonrc
+```
 
 
 ## Initialise Project Structure
@@ -37,6 +43,36 @@ The `initialise-repo.sh` can create:
  
 with the very basic folder structure and required artifacts. The script enables you to create them individually or combinations of certain repositories.
 
+### Standardised Git Repo Structure - Code Repo
+
+| folder	| description  
+|------------------------------------	|---------------------------------  
+| `pdi/repo`	| pdi files (ktr, kjb). Also root of file based repo if used.  
+| `pdi/sql` | SQL queries
+| `pdi/sql/ddl`	| ddl  
+| `pentaho-server/metadata`	| pentaho metadata models  
+| `pentaho-server/mondrian`	| mondrian cube definitions  
+| `pentaho-server/repo`	| contains export from pentaho server repo  
+| `pentaho-server/prd`	| perntaho report files  
+| `shell-scripts`	| any shell-scripts that don't hold configuration specific instructions  
+
+> **Note**: Data, like lookup tables, must not be stored with the code. For development and unit testing they can be stored in the `config` git repo's `test-data` folder. But in prod it must reside outside any git repo if it is the only source available.
+
+### Standardised Git Repo Structure - Configuration Repo
+
+| folder	| description  
+|------------------------------------	|---------------------------------  
+| `pdi/.kettle`	| pdi config files  
+| `pdi/metadata`	| any metadata files that drive DI processes  
+| `pdi/properties`	| properties files source by pdi  
+| `pdi/schedules`	| holds crontab instructions, DI server schedules or similar  
+| `pdi/shell-scripts`	| shell scripts to execute e.g. PDI jobs  
+| `pdi/test-data`	| optional: test data for development or unit testing - specific to environment  
+| `pentaho-server/connections`	| pentaho server connections
+| `utilities` |  
+
+### How to run the script
+
 The `initialise-repo.sh` script expects following **arguments**:
 
 - action (required)
@@ -48,7 +84,7 @@ The `initialise-repo.sh` script expects following **arguments**:
 
 > **Important**: All the repositories have to be located within the same folder. This folder is referred to as `BASE_DIR`.
 
-> **Note**: If any of these repositories already exist within the same folder, they will not be overwritten. The idea is to run the script in a fresh/clean base dir, have to script create the repos and then push them to the central git server.
+> **Note**: If any of these repositories already exist within the same folder, they will not be overwritten. The idea is to run the script in a fresh/clean base dir, have the script create the repos and then push them to the central git server.
 
 You can just run the script without arguments and the expected usage pattern will be displayed:
 
@@ -91,7 +127,7 @@ initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-repo
 exiting ...
 ```
 
-## Example
+### Example
 
 Creating a new **project** called `myproject` with **common artefacts** for the `dev` **environment** using a PDI file-based **storage approach** 
 
@@ -104,6 +140,7 @@ Once this is in place, most settings should be automatically set, however, doubl
 - `common-config-<env>/pdi/.kettle/repositories.xml` (only when using repo storage mode)
 - `common-config-<env>/pdi/shell-scripts/set_env_variables.sh`
 - `myproject-config-<env>/pdi/shell-scripts/wrapper.sh`: There are only changes required in the `PROJECT-SPECIFIC CONFIGURATION PROPERTIES` section.
+- `myproject-config-<env>/pdi/shell-scripts/run_jb_<project>_master.sh`: adjust path to main PDI job (once it exists).
 
 If you are setting this up on your local workstation, you should be able to start Spoon now and connect to the PDI repository. 
 

@@ -191,7 +191,9 @@ function project_code {
   echo "================PROJECT CODE===================="
   PROJECT_CODE_DIR=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code
   echo "PROJECT_CODE_DIR: ${PROJECT_CODE_DIR}"
+
   if [ ! -d "${PROJECT_CODE_DIR}" ]; then
+  
     echo "Creating project code folder ..."
     echo "location: ${PROJECT_CODE_DIR}" 
     mkdir ${PROJECT_CODE_DIR}
@@ -290,16 +292,20 @@ function project_config {
   echo "================PROJECT CONFIG=================="
   PROJECT_CONFIG_DIR=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-config-${PSGRS_ENV}
   echo "PROJECT_CONFIG_DIR: ${PROJECT_CONFIG_DIR}"
+
   if [ ! -d "${PROJECT_CONFIG_DIR}" ]; then 
-    cd ${PROJECT_CONFIG_DIR}
-    echo "Creating and pointing to default git branch"
-    git checkout -b master
+
     echo "Creating project config folder ..."
     echo "location: ${PROJECT_CONFIG_DIR}" 
     mkdir ${PROJECT_CONFIG_DIR}
     cd ${PROJECT_CONFIG_DIR}
+  
     echo "Initialising Git Repo ..."
     git init .
+  
+    echo "Creating and pointing to default git branch"
+    git checkout -b master
+  
     echo "Adding Git hooks ..."
     cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${PROJECT_CONFIG_DIR}/.git/hooks
     cp ${PSGRS_SHELL_DIR}/config/settings.sh ${PROJECT_CONFIG_DIR}/.git/hooks
@@ -419,7 +425,7 @@ function standalone_project_config {
 
     export PSGRS_PDI_REPO_NAME=${PSGRS_PROJECT_NAME}
     export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
-    export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi
+    export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
 
     envsubst \
       < ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/repositories-file.xml \
@@ -503,19 +509,24 @@ function common_config {
   COMMON_CONFIG_DIR=${PSGRS_BASE_DIR}/common-config-${PSGRS_ENV}
   echo "COMMON_CONFIG_DIR: ${COMMON_CONFIG_DIR}"
   if [ ! -d "${COMMON_CONFIG_DIR}" ]; then 
-    echo "Creating and pointing to default git branch"
-    git checkout -b master
+
     echo "Creating common config folder ..."
     echo "location: ${COMMON_CONFIG_DIR}" 
     mkdir ${COMMON_CONFIG_DIR}
     cd ${COMMON_CONFIG_DIR}
+
+    echo "Initialising Git Repo ..."
+    git init .
+
+    echo "Creating and pointing to default git branch"
+    git checkout -b master
+    
     echo "Creating basic folder structure ..."
     
     mkdir -p pdi/.kettle 
     mkdir -p pdi/shell-scripts
 
-    echo "Initialising Git Repo ..."
-    git init .
+
     echo "Adding Git hooks ..."
     cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${COMMON_CONFIG_DIR}/.git/hooks
     cp ${PSGRS_SHELL_DIR}/config/settings.sh ${COMMON_CONFIG_DIR}/.git/hooks
@@ -561,13 +572,14 @@ function common_config {
     cp ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/.spoonrc \
        ${COMMON_CONFIG_DIR}/pdi/.kettle
 
+    # commit new files
+    git add --all
+    git commit -am "initial commit"
+
     # enable pre-commit hook
     chmod 700 ${COMMON_CONFIG_DIR}/.git/hooks/pre-commit
     chmod 700 ${COMMON_CONFIG_DIR}/.git/hooks/settings.sh
 
-    # commit new files
-    git add --all
-    git commit -am "initial commit"
 
     echo "Creating basic README file ..."
     echo "Common configuration for ${PSGRS_ENV} environment." > ${COMMON_CONFIG_DIR}/readme.md
@@ -607,14 +619,19 @@ function project_docu {
   PROJECT_DOCU_DIR=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-documentation
   echo "PROJECT_DOCU_DIR: ${PROJECT_DOCU_DIR}"
   if [ ! -d "${PROJECT_DOCU_DIR}" ]; then 
-    echo "Creating and pointing to default git branch"
-    git checkout -b master
+
     echo "Creating project documentation folder ..."
     echo "location: ${PROJECT_DOCU_DIR}"
+    
     mkdir ${PROJECT_DOCU_DIR}
     cd ${PROJECT_DOCU_DIR}
+
     echo "Initialising Git Repo ..."
     git init .
+    
+    echo "Creating and pointing to default git branch"
+    git checkout -b master
+
     echo "Creating basic README file ..."
     echo "# Documentation for ${PSGRS_PROJECT_NAME}" > ${PROJECT_DOCU_DIR}/readme.md
 
@@ -637,14 +654,19 @@ function common_docu {
   COMMON_DOCU_DIR=${PSGRS_BASE_DIR}/common-documentation
   echo "COMMON_DOCU_DIR: ${COMMON_DOCU_DIR}"
   if [ ! -d "${COMMON_DOCU_DIR}" ]; then 
-    echo "Creating and pointing to default git branch"
-    git checkout -b master
+
     echo "Creating project documentation folder ..."
     echo "location: ${COMMON_DOCU_DIR}"
+
     mkdir ${COMMON_DOCU_DIR}
     cd ${COMMON_DOCU_DIR}
+
     echo "Initialising Git Repo ..."
     git init .
+    
+    echo "Creating and pointing to default git branch"
+    git checkout -b master
+
     echo "Creating basic README file ..."
     echo "# Common Documentation" > ${COMMON_DOCU_DIR}/readme.md
 
@@ -658,20 +680,17 @@ function common_docu {
 
 
 if [ ${PSGRS_ACTION} = "1" ]; then 
+  project_docu
+  common_docu
+  project_code
   project_config
   common_config
-  common_docu
-  project_docu
-  # had to place this at the end since for some reason the branch gets always reset to master
-  # maybe has something to do with the submodules being sorced and this taking a bit
-  # while the main process continues?
-  project_code
 fi
 
 if [ ${PSGRS_ACTION} = "2" ]; then 
-  standalone_project_config
-  project_docu
   project_code
+  project_docu
+  standalone_project_config
 fi
 
 if [ ${PSGRS_ACTION} = "pdi_module" ]; then 

@@ -2,10 +2,10 @@
 SHELL_DIR=$(dirname $0)
 source ${SHELL_DIR}/settings.sh
 # check whether it is a config or code repository
-IS_CONFIG=N
+IS_CONFIG={{ IS_CONFIG }}
 # IS_CONFIG=N
 # check whether it is a file-based or repo-based PDI setup
-IS_REPO_BASED=N
+IS_REPO_BASED={{ IS_REPO_BASED }}
 #IS_REPO_BASED=N
 TEST_FAILED=" - Test - [\e[31m FAILED\e[39m ]"
 TEST_PASSED=" - Test - [\e[32m PASSED\e[39m ]"
@@ -37,7 +37,8 @@ cd ${GIT_ROOT_DIR}
 if [ ${PSGRS_GIT_HOOKS_CHECKS_NEW_FILES_ONLY} = "Y" ]; then
   FILE_LIST=`git diff --cached --name-only`
 else
-  FILE_LIST=`git ls-files`
+  # get list of files known by git and exclude hidden files
+  FILE_LIST=`git ls-files | grep -vE "^\..+"`
   # FILE_LIST=`find . -path ./.git -prune -o -print`
 fi
 
@@ -194,7 +195,7 @@ function check_supported_file_type {
     then
       FILE_MATCH=$(echo ${FILE} | grep --invert-match -E "${PSGRS_GIT_CONFIG_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX}")
     else
-      ILE_MATCH=$(echo ${FILE} | grep --invert-match -E "${PSGRS_GIT_CODE_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX}")
+      FILE_MATCH=$(echo ${FILE} | grep --invert-match -E "${PSGRS_GIT_CODE_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX}")
     fi
     
     if [ -n "${FILE_MATCH}" ]
@@ -427,7 +428,8 @@ function check_hard_coded_domain_name {
       print_passed ${TEST_NAME}
     fi
     return ${STAT}
-
+  else
+    echo "Skipping test since no PDI repo present ..."
   fi
 }
  
@@ -489,6 +491,9 @@ function check_referenced_database_are_part_of_the_project {
       print_passed ${TEST_NAME}
     fi
     return ${STAT}
+
+  else
+    echo "Skipping test since no PDI repo present ..."
   fi
 }
 
@@ -550,6 +555,8 @@ function check_parameters_and_variables_follow_naming_convention {
     fi
     return ${STAT}
 
+  else
+    echo "Skipping test since no PDI repo present ..."
   fi
 
 }
@@ -643,7 +650,9 @@ function check_defined_database_connections_are_part_of_the_project {
       print_passed ${TEST_NAME}
     fi
     return ${STAT}
-
+  
+  else
+    echo "Skipping test since no PDI repo present ..."
   fi
 }
 
@@ -653,9 +662,11 @@ function check_defined_database_connections_are_part_of_the_project {
 #######################################
  
 if [ ${IS_CONFIG} = "Y" ]; then
+  # Checks to only run for config repos
   check_supported_file_type
   check_for_non_ascii_filenames
 else
+  # Checks to only run for code repos
   check_for_paths_with_whitespaces
   check_supported_file_type
   check_for_non_ascii_filenames
