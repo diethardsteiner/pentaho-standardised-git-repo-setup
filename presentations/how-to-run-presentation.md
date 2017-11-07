@@ -73,12 +73,16 @@ Email         : diethard.steiner@bissolconsulting.com
 [TOC]
 ```
 
-# Fix code block font color for the HTML outpu
+# Fix code block font color for the HTML output
 
-Add to main HTML:
+Add to main HTML (at the same time we also change the color of the bold text):
 
 ```
 code {
   color: #349cd5;
 }
+.strong-star2{
+  color:burlywood;  
+}
 ```
+
