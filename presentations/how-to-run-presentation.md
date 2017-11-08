@@ -86,3 +86,13 @@ code {
 }
 ```
 
+Quick hack to add the logo:
+
+```
+body {
+    background-image: url("/home/dsteiner/git/pentaho-standardised-git-repo-setup/presentations/pics/logo_v4_white_small.png") !important;
+    background-repeat: no-repeat !important;
+    background-size:initial !important;
+}
+```
+
