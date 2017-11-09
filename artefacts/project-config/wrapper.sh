@@ -36,6 +36,11 @@ fi
 ## ~~~~~~~~~~~~~~~~~~~~~~~~ DO NOT CHANGE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
 ##                      ______________________                        ##
 
+
+# The following sections expects a flat folder structures:
+# project specific repos and common repos are all within the same parent folder
+# If your setup is different, adjust accordingly
+
 # Get path to current git repo root
 PROJECT_GIT_DIR=`git rev-parse --show-toplevel`
 # Extract project name and environment from the standardised project folder name

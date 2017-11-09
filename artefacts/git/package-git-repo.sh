@@ -126,6 +126,9 @@ fi
 
 # BUILD RPM
 
+# this is an extremly basic implementation and should not be used
+# improvement necessary so that RPM can be build in isolated environment
+
 if [ ${BUILD_RPM} = "Y" ]
 then
 
