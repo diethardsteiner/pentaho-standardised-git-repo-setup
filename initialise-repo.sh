@@ -100,7 +100,15 @@ done
 
 PSGRS_WORKING_DIR=`pwd`
 PSGRS_SHELL_DIR=$(dirname $0)
-export PSGRS_BASE_DIR=${PSGRS_WORKING_DIR}
+
+# create top level folder to not pollute any other folder
+if [ ! -d "psgrs" ]; then
+  mkdir psgrs
+fi
+
+cd psgrs
+export PSGRS_BASE_DIR=${PSGRS_WORKING_DIR}/psgrs
+
 
 echo "=============="
 echo "PSGRS SHELL DIR: " ${PSGRS_SHELL_DIR}
@@ -685,12 +693,20 @@ if [ ${PSGRS_ACTION} = "1" ]; then
   project_code
   project_config
   common_config
+
+  # copy utility scripts
+  cd ${PSGRS_BASE_DIR}
+  cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repo.sh .
 fi
 
 if [ ${PSGRS_ACTION} = "2" ]; then 
   project_code
   project_docu
   standalone_project_config
+
+  # copy utility scripts
+  cd ${PSGRS_BASE_DIR}
+  cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repo.sh .
 fi
 
 if [ ${PSGRS_ACTION} = "pdi_module" ]; then 
