@@ -90,41 +90,6 @@ You can just run the script without arguments and the expected usage pattern wil
 
 ```bash
 $ initialise-repo.sh
-ERROR: Not all mandatory arguments supplied, please supply environment and/or job arguments
-
-Usage: initialise-repo.sh ...
-Creates a basic folder structure for a Pentaho code or config repository
-
-Mandatory arguments
-
--a   PSGRS_ACTION: Choose number
-        (1) Project Repo with Common Config and Modules
-        (2) Standalone Project and Config (No Common Artefacts)
-        pdi_module
-        pdi_module_repo
-        project_code
-        project_config
-        standalone_project_config
-        common_code
-        common_config
-        project_docu
-        common_docu
- 
-Mandatory arguments:
- 
--p  PROJECT NAME:  Lower case, only letters allowed, no underscores, dashes etc.
-                   Minimum of 3 to a maximum of 20 letters.
--e  ENVIRONMENT:   Name of the environment: dev, test, prod or similiar. 
-                   Lower case, only letters allowed, no underscores, dashes etc
-                   Minimum of 3 to a maximum of 10 letters.
--s  STORAGE TYPE:  Which type of PDI storage type to use.
-                   Possible values: file-based, file-repo. Not supported: db-repo, ee-repo
-
-Sample usage:
-initialise-repo.sh -a standalone_project_config -p mysampleproj -e dev -s file-based
-initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-repo
-
-exiting ...
 ```
 
 ### Example
@@ -132,8 +97,10 @@ exiting ...
 Creating a new **project** called `myproject` with **common artefacts** for the `dev` **environment** using a PDI file-based **storage approach** 
 
 ```bash
-$ sh initialise-repo.sh -a 1 -p myproject -e dev -s file-based
+$ sh <path-to-script-folder>/initialise-repo.sh -a 1 -g myproject -g mp -e dev -s file-based
 ```
+
+This will create a folder called `myproject` in the current directory, which will hold all the other git repositories.
 
 Once this is in place, most settings should be automatically set, however, double check the following files and amend if required:
 

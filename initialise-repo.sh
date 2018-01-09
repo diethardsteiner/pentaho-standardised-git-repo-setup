@@ -29,7 +29,11 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo " "
     echo "Mandatory arguments:"
     echo " "
-    echo "-p  PROJECT NAME:  Lower case, only letters allowed, no underscores, dashes etc."
+    echo "-g  GROUP NAME:    Full Project Name, e.g. world-wide-trading"
+		echo "                   Lower case, only letters allowed, no underscores, dashes etc."
+    echo "                   Minimum of 3 to a maximum of 20 letters."
+    echo "-p  PROJECT NAME:  Project name abbreviation, e.g. wwt"
+		echo "                   Lower case, only letters allowed, no underscores, dashes etc."
     echo "                   Minimum of 3 to a maximum of 20 letters."
     echo "-e  ENVIRONMENT:   Name of the environment: dev, test, prod or similiar. "
     echo "                   Lower case, only letters allowed, no underscores, dashes etc"
@@ -38,8 +42,8 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "                   Possible values: file-based, file-repo. Not supported: db-repo, ee-repo"
     echo ""
     echo "Sample usage:"
-    echo "initialise-repo.sh -a standalone_project_config -p mysampleproj -e dev -s file-based"
-    echo "initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-repo"
+    echo "initialise-repo.sh -a standalone_project_config -g mysampleproj -p msp -e dev -s file-based"
+    echo "initialise-repo.sh -a 2 -g mysampleproj -p msp -e dev -s file-repo"
     echo ""
     echo "exiting ..."
     exit 1
@@ -47,10 +51,19 @@ fi
 
 
 # while getopts ":a:p:d:u:" opt; do
-while getopts ":a:p:e:s:" opt; do
+while getopts ":a:g:p:e:s:" opt; do
   case $opt in
     a) PSGRS_ACTION="$OPTARG"
         echo "Submitted PSGRS_ACTION value: ${PSGRS_ACTION}"
+    ;;
+		g) export PSGRS_GROUP_NAME="$OPTARG"
+        echo "Submitted project name value: ${PSGRS_GROUP_NAME}"
+        if [[ ! ${PSGRS_GROUP_NAME} =~ ^[a-z]{3,20}$ ]]; then
+          echo "Unsupported group name!"
+          echo "Lower case, only letters allowed, no underscores, dashes, spaces etc."
+          echo "Minimum of 3 to a maximum of 20 letters."
+          exit 1
+        fi
     ;;
     p) export PSGRS_PROJECT_NAME="$OPTARG"
         echo "Submitted project name value: ${PSGRS_PROJECT_NAME}"
@@ -102,12 +115,22 @@ PSGRS_WORKING_DIR=`pwd`
 PSGRS_SHELL_DIR=$(dirname $0)
 
 # create top level folder to not pollute any other folder
-if [ ! -d "psgrs" ]; then
-  mkdir psgrs
+
+# make sure group name value is set
+if [ -z ${PSGRS_GROUP_NAME} ]; then
+	echo "Not all required arguments were supplied. Group Name value missing."
+	echo "exiting ..."
+	exit 1
 fi
 
-cd psgrs
-export PSGRS_BASE_DIR=${PSGRS_WORKING_DIR}/psgrs
+# check if directory already exists
+# otherwise create it
+if [ ! -d "${PSGRS_GROUP_NAME}" ]; then
+  mkdir ${PSGRS_GROUP_NAME}
+fi
+
+cd ${PSGRS_GROUP_NAME}
+export PSGRS_BASE_DIR=${PSGRS_WORKING_DIR}/${PSGRS_GROUP_NAME}
 
 
 echo "=============="
