@@ -58,10 +58,10 @@ while getopts ":a:g:p:e:s:" opt; do
     ;;
 		g) export PSGRS_GROUP_NAME="$OPTARG"
         echo "Submitted project name value: ${PSGRS_GROUP_NAME}"
-        if [[ ! ${PSGRS_GROUP_NAME} =~ ^[a-z]{3,20}$ ]]; then
+        if [[ ! ${PSGRS_GROUP_NAME} =~ ^[a-z\-]{3,40}$ ]]; then
           echo "Unsupported group name!"
-          echo "Lower case, only letters allowed, no underscores, dashes, spaces etc."
-          echo "Minimum of 3 to a maximum of 20 letters."
+          echo "Lower case, only letters and dashes allowed, no underscores etc."
+          echo "Minimum of 3 to a maximum of 40 characters."
           exit 1
         fi
     ;;
@@ -70,7 +70,7 @@ while getopts ":a:g:p:e:s:" opt; do
         if [[ ! ${PSGRS_PROJECT_NAME} =~ ^[a-z]{3,20}$ ]]; then
           echo "Unsupported project name!"
           echo "Lower case, only letters allowed, no underscores, dashes, spaces etc."
-          echo "Minimum of 3 to a maximum of 20 letters."
+          echo "Minimum of 3 to a maximum of 20 characters."
           exit 1
         fi
     ;;
