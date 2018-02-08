@@ -25,7 +25,7 @@ export PSGRS_PDI_ACCEPTED_DATABASE_CONNECTION_NAMES_REGEX="^module\_.*|^hive_gen
 # regex to identify valid file extensions in a code repo
 export PSGRS_GIT_CODE_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX="cda$|cdfde$|css$|csv$|gitignore$|html$|jpeg$|js$|json$|kdb$|kjb$|ktr$|md$|png$|prpt$|prpti$|sql$|sh$|svg$|txt$|wcdf$|xanalyzer$|xmi$|xml$"
 # regex to identify valid file extensions in a config repo
-export PSGRS_GIT_CONFIG_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX="gitignore$|md$|properties$|sh$|json$|xml$|txt$|csv$"
+export PSGRS_GIT_CONFIG_REPO_ACCEPTED_FILE_EXTENSIONS_REGEX="gitignore$|md$|properties$|sh$|spoonrc$|json$|xml$|txt$|csv$"
 # regex specifying the accepted git branch names
 export PSGRS_GIT_REPO_ACCEPTED_BRANCH_NAMES_REGEX="^master$|^dev$|^feature\_.+|^release\_.+|^hotfix\_.+"
 # regex specfying any words that should not show up in file and folder names

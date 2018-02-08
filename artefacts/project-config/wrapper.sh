@@ -24,10 +24,10 @@ if [ $# -eq 0 ] || [ -z "$1" ] || [ -z "$2" ]
   else
     # PDI repo relative path for home directory of project kjb files
     JOB_HOME="$1"
-    echo "JOB_HOME: $JOB_HOME"
+    echo "JOB_HOME: ${JOB_HOME}"
     # target job name (kjb file name)
     JOB_NAME="$2"
-    echo "JOB_NAME: $JOB_NAME"
+    echo "JOB_NAME: ${JOB_NAME}"
 fi
 
 
@@ -36,6 +36,10 @@ fi
 ## ~~~~~~~~~~~~~~~~~~~~~~~~ DO NOT CHANGE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
 ##                      ______________________                        ##
 
+
+BASE_DIR="$( cd "$( /usr/bin/dirname "$0" )" && pwd )"
+echo "The wrapper shell script is running from following directory: ${BASE_DIR}"
+cd ${BASE_DIR}
 
 # The following sections expects a flat folder structures:
 # project specific repos and common repos are all within the same parent folder
@@ -67,7 +71,7 @@ fi
 # source common environment variables here so that they can be used straight away for project specifc variables
 source ${COMMON_CONFIG_HOME}/pdi/shell-scripts/set-env-variables.sh
 # is this project using a pdi repo setup or a file based one?
-if [ -f ${COMMON_CONFIG_HOME}/pdi/repositories.xml ]
+if [ -f ${COMMON_CONFIG_HOME}/pdi/.kettle/repositories.xml ]
 then
     echo "Note: repositories.xml does exist ... "
     IS_PDI_REPO_BASED="Y"

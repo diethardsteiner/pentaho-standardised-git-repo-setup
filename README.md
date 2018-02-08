@@ -105,7 +105,7 @@ This will create a folder called `myproject` in the current directory, which wil
 Once this is in place, most settings should be automatically set, however, double check the following files and amend if required:
 
 - `common-config-<env>/pdi/.kettle/repositories.xml` (only when using repo storage mode)
-- `common-config-<env>/pdi/shell-scripts/set_env_variables.sh`
+- `common-config-<env>/pdi/shell-scripts/set_env_variables.sh`: Adjust `PDI_HOME` and `LOG_DIR`.
 - `myproject-config-<env>/pdi/shell-scripts/wrapper.sh`: There are only changes required in the `PROJECT-SPECIFIC CONFIGURATION PROPERTIES` section.
 - `myproject-config-<env>/pdi/shell-scripts/run_jb_<project>_master.sh`: adjust path to main PDI job (once it exists).
 
@@ -167,7 +167,9 @@ drwxrwxr-x. 3 dsteiner dsteiner 4096 Feb  6 23:02 mpr-documentatio
 
 Each of these folders is a dedicated git repo. It is recommended that you create equivalent repos (so same named repos) on your central **Git Server** (Gitlab, Bitbucket, Github, etc). Usually once you do this, commands will be shown on how to set up those repos locally - usually one of the command sections shown is the one where you can link an **existing** local repo with your online/central one. Use these commands for each of your local repos. So in a nutshell: We are linking our existing local repos with the remote/central repos.
 
-There are a few config settings etc that you can or should adjust at this point, which are mentioned in the previous example section.
+There are a few config settings etc that you can or should adjust at this point, which are mentioned in the previous example section. E.g.:
+
+- `common-config-<env>/pdi/shell-scripts/set_env_variables.sh`: Adjust `PDI_HOME` and `LOG_DIR`.
 
 Next, within the same terminal window, navigate to the directory where the **PDI client** is installed and start **Spoon**:
 
@@ -224,6 +226,14 @@ myproject/mpr-config-test/pdi/shell-scripts/run_jb_mpr_master.sh
 ```
 
 Note how easy it is to switch the environment: You just pick the respective config folder and everything else is the same!
+
+### How to execute your PDI jobs
+
+You must execute your jobs via `pdi/shell-scripts/run_jb_[PROJECT]_master.sh`, which is located in the environment specific project git repo. The reason for this is that this shell script will call first of all the `wrapper.sh`, which sets up all relevant environment variables and this one in turn will call a wrapper PDI job from the PDI modules, which sets the project and job specific properties and only then calls the jobs you are asking to be executed. 
+
+You cannot achieve exactly the same behaviour from within Spoon. However, for testing it should be possible to execute your job via the module wrapper job in Spoon as well.
+
+> **Important**: Do not change the module wrapper job! This should be treated as read-only! Supply parameter values via the **Run** dialog.
 
 # Code Repository
 

@@ -375,6 +375,15 @@ function project_config {
     
     mv ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/run_jb_name.sh \
        ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/run_jb_${PSGRS_PROJECT_NAME}_master.sh
+
+    perl -0777 \
+      -pe "s@your_project_name@${PSGRS_PROJECT_NAME}@igs" \
+      -i ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/run_jb_${PSGRS_PROJECT_NAME}_master.sh
+
+    perl -0777 \
+      -pe "s@jb_name@jb_${PSGRS_PROJECT_NAME}_master@igs" \
+      -i ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/run_jb_${PSGRS_PROJECT_NAME}_master.sh
+
     
     echo "Adding essential properties files ..."
 
@@ -580,7 +589,7 @@ function common_config {
 
       export PSGRS_PDI_REPO_NAME=${PSGRS_PROJECT_NAME}
       export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
-      export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi
+      export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
 
       envsubst \
         < ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/repositories-file.xml \
@@ -719,7 +728,7 @@ if [ ${PSGRS_ACTION} = "1" ]; then
 
   # copy utility scripts
   cd ${PSGRS_BASE_DIR}
-  cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repo.sh .
+  cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repos.sh .
 fi
 
 if [ ${PSGRS_ACTION} = "2" ]; then 
@@ -729,7 +738,7 @@ if [ ${PSGRS_ACTION} = "2" ]; then
 
   # copy utility scripts
   cd ${PSGRS_BASE_DIR}
-  cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repo.sh .
+  cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repos.sh .
 fi
 
 if [ ${PSGRS_ACTION} = "pdi_module" ]; then 
