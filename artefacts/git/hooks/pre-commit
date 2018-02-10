@@ -325,8 +325,8 @@ function check_repo_path {
   for MY_FILE in ${MY_FILES}
   do
     FOLDER=$(dirname ${MY_FILE})
-    # get rid of the `pdi/` starting bit
-    FOLDER=`echo ${FOLDER} | cut -c 4-`
+    # get rid of the `pdi/repo/` starting bit
+    FOLDER=`echo ${FOLDER} | cut -c 9-`
     # `grep -m 1` replaced with `grep ... | head -n1` since some older systems do not support the first option
     REPO_FOLDER=$(grep '<directory>' $MY_FILE | head -n1 | \
       sed -e 's| *<directory>||g' \

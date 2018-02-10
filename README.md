@@ -92,6 +92,8 @@ You can just run the script without arguments and the expected usage pattern wil
 $ initialise-repo.sh
 ```
 
+> **Important**: As of version 7 Pentaho officially only supports the **file-based** approach and the Jackrabbit/Pentaho Server repository. For this reason I strongly recommend that you use the **file-based** approach for development. In production you can either do the same or import the files into the Jackrabbit/Pentaho Server repository. Also note that the default PDI modules, which are sourced by `initialise-repo.sh`, are to be used with a file-based approach only.  
+
 ### Example
 
 Creating a new **project** called `myproject` with **common artefacts** for the `dev` **environment** using a PDI file-based **storage approach** 
@@ -138,7 +140,7 @@ $ echo $PSGRS_HOME
 Let's change the directory now to a convenient location where we can create our new project repos. We will create the dev environment setup and we use a file based setup. Note that we use the action switch `1`, which will create a series of required repos to facilitate the setup:
 
 ```bash
-# I choose this dir, you might want to choose a different one
+# I chose this dir, you might want to choose a different one
 $ cd ~/git
 $ $PSGRS_HOME/initialise-repo.sh  -a 1 -g myproject -p mpr -e dev -s file-repo
 ```

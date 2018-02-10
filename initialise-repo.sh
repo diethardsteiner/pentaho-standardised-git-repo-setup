@@ -197,6 +197,12 @@ function pdi_module_repo {
     # cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${PDI_MODULES_REPO_DIR}/.git/hooks
     echo "Adding kettle db connection files ..."
     cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/*.kdb .
+
+    perl -0777 \
+      -pe "s@\{\{ VAR_DB_CONNECTION_NAME \}\}@sample_db_connection@igs" \
+      -i ${PDI_MODULES_REPO_DIR}/db_connection_template.kdb     
+
+
     echo "Adding pdi modules as a git submodule ..."
     git submodule add -b master ${PSGRS_MODULES_GIT_REPO_URL} modules
     # the next command is only required in older git versions to get the content for the submodule
@@ -278,6 +284,10 @@ function project_code {
     if [ ${PSGRS_PDI_STORAGE_TYPE} = "file-repo" ]; then
       echo "Adding kettle db connection files ..."
       cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/*.kdb pdi/repo
+
+      perl -0777 \
+        -pe "s@\{\{ VAR_DB_CONNECTION_NAME \}\}@sample_db_connection@igs" \
+        -i ${PROJECT_CODE_DIR}/pdi/repo/db_connection_template.kdb 
     fi
     
     if [ ${PSGRS_PDI_STORAGE_TYPE} = "file-based" ]; then
@@ -447,6 +457,8 @@ function standalone_project_config {
   project_config
 
   mkdir -p pdi/.kettle
+  cp ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/.gitignore \
+     ${PROJECT_CONFIG_DIR}/pdi/.kettle
 
   echo "Adding essential shell files ..."
 
@@ -459,7 +471,7 @@ function standalone_project_config {
   # add_kettle_artefacts
   echo "Adding .kettle files for ${PSGRS_PDI_STORAGE_TYPE} ..."
   cp ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/kettle.properties \
-     pdi/.kettle
+     ${PROJECT_CONFIG_DIR}/pdi/.kettle
 
   if [ ${PSGRS_PDI_STORAGE_TYPE} = 'file-repo' ]; then
 
@@ -564,6 +576,9 @@ function common_config {
     echo "Creating basic folder structure ..."
     
     mkdir -p pdi/.kettle 
+    cp ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/.gitignore \
+      ${COMMON_CONFIG_DIR}/pdi/.kettle
+
     mkdir -p pdi/shell-scripts
 
 

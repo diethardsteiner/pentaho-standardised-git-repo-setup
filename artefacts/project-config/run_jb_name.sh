@@ -1,5 +1,7 @@
 #!/bin/sh
-JOB_PATH="your_project_name"
+# specify the path to the job with 
+JOB_PATH="your_project_name.kjb"
+# specify the PDI job name - with extension for file-based approach, otherwise without
 JOB_NAME="jb_name"
 
 #BASE_DIR=$(dirname 0)
