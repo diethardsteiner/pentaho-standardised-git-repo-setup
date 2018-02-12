@@ -1,8 +1,8 @@
 #!/bin/sh
 # specify the path to the job with 
-JOB_PATH="your_project_name.kjb"
+JOB_PATH="your_project_name"
 # specify the PDI job name - with extension for file-based approach, otherwise without
-JOB_NAME="jb_name"
+JOB_NAME="jb_name.kjb"
 
 #BASE_DIR=$(dirname 0)
 # to make it run with crontab as well
