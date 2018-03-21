@@ -136,25 +136,34 @@ PROJECT_CONFIG_HOME_BRANCH=`git branch`
 cd ${PROJECT_CODE_DIR}
 PROJECT_CODE_DIR_BRANCH=`git branch`
 
-echo ""
-echo "-----------------------------------------------------------------------"
-echo "Running script with the following environment variables:"
-echo
-echo "PDI Environment (PDI_ENV):                   ${PDI_ENV}"
-echo "Location of Kettle properties (KETTLE_HOME): ${KETTLE_HOME}"
-echo "Location of Common Configuration:            ${COMMON_CONFIG_HOME}   Branch: ${COMMON_CONFIG_HOME_BRANCH}"
-echo "Location of Project Configuration:           ${PROJECT_CONFIG_HOME}  Branch: ${PROJECT_CONFIG_HOME_BRANCH}"
-echo "Location of Project Code:                    ${PROJECT_CODE_DIR}     Branch: ${PROJECT_CODE_DIR_BRANCH}"
-echo "Project Properties File Location:            ${PROJECT_PROPERTIES_FILE}"
-echo "Job Properties File Location:                ${JOB_PROPERTIES_FILE}"
-echo "Directory containing PDI installation:       ${PDI_DIR}"
-echo "PDI Job Directory:                           ${PDI_ARTEFACT_DIRECTORY_PATH}"
-echo "PDI Job Filename:                            ${JOB_NAME}"
-echo "Location of log file:                        ${PROJECT_LOG_HOME}/${JOB_LOG_FILE}"
-echo "-----------------------------------------------------------------------"
-echo ""
 
-mkdir -p $PROJECT_LOG_HOME
+START_DATETIME=`date '+%Y-%m-%d_%H-%M-%S'`
+START_UNIX_TIMESTAMP=`date "+%s"`
+
+
+mkdir -p ${PROJECT_LOG_HOME}
+
+cat > ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} <<EOL
+
+Starting at: ${START_DATETIME}
+
+-----------------------------------------------------------------------
+Running script with the following environment variables:
+
+PDI Environment (PDI_ENV):                   ${PDI_ENV}
+Location of Kettle properties (KETTLE_HOME): ${KETTLE_HOME}
+Location of Common Configuration:            ${COMMON_CONFIG_HOME}   Branch: ${COMMON_CONFIG_HOME_BRANCH}
+Location of Project Configuration:           ${PROJECT_CONFIG_HOME}  Branch: ${PROJECT_CONFIG_HOME_BRANCH}
+Location of Project Code:                    ${PROJECT_CODE_DIR}     Branch: ${PROJECT_CODE_DIR_BRANCH}
+Project Properties File Location:            ${PROJECT_PROPERTIES_FILE}
+Job Properties File Location:                ${JOB_PROPERTIES_FILE}
+Directory containing PDI installation:       ${PDI_DIR}
+PDI Job Directory:                           ${PDI_ARTEFACT_DIRECTORY_PATH}
+PDI Job Filename:                            ${JOB_NAME}
+Location of log file:                        ${PROJECT_LOG_HOME}/${JOB_LOG_FILE}
+-----------------------------------------------------------------------
+
+EOL
 
 
 
@@ -163,10 +172,6 @@ mkdir -p $PROJECT_LOG_HOME
 ## ~~~~~~~~~~~~~~~~~~~~~~~~ DO NOT CHANGE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
 ##                      ______________________                        ##
 
-
-START_DATETIME=`date '+%Y-%m-%d_%H-%M-%S'`
-START_UNIX_TIMESTAMP=`date "+%s"`
-echo "Staring at: ${START_DATETIME}"
 
 cd ${PDI_DIR}
 
@@ -193,7 +198,7 @@ else
   -param:PARAM_JOB_NAME="${JOB_NAME}" \
   -param:PARAM_TRANSFORMATION_NAME="" \
   -param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PROJECT_CODE_PDI_REPO_DIR}/${PDI_ARTEFACT_DIRECTORY_PATH}" \
-  > ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} 2>&1
+  >> ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} 2>&1
 fi
 
 RES=$?
@@ -201,7 +206,7 @@ RES=$?
 END_DATETIME=`date '+%Y-%m-%d_%H-%M-%S'`
 END_UNIX_TIMESTAMP=`date "+%s"`
 echo
-echo "End DateTime: ${END_DATETIME}"
+echo "End DateTime: ${END_DATETIME}" >> ${PROJECT_LOG_HOME}/${JOB_LOG_FILE}
 
 
 DURATION_IN_SECONDS=`expr ${END_UNIX_TIMESTAMP} - ${START_UNIX_TIMESTAMP}`
