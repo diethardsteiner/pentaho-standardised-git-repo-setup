@@ -143,6 +143,9 @@ START_UNIX_TIMESTAMP=`date "+%s"`
 
 mkdir -p ${PROJECT_LOG_HOME}
 
+
+echo "Location of log file: ${PROJECT_LOG_HOME}/${JOB_LOG_FILE}"
+
 cat > ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} <<EOL
 
 Starting at: ${START_DATETIME}

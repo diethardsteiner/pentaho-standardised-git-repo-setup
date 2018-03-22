@@ -103,9 +103,9 @@ while getopts ":a:g:p:e:s:" opt; do
 done
 
 # Example Usage:
-# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a standalone_project_config -p mysampleproj -e dev -s file-based
-# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-based
-# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 2 -p mysampleproj -e dev -s file-repo
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a standalone_project_config -g mysampleproj -p mys -e dev -s file-based
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 2 -g mysampleproj -p mys -e dev -s file-based
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 2 -g mysampleproj -p mys -e dev -s file-repo
 
 
 
@@ -277,6 +277,11 @@ function project_code {
     touch pentaho-server/prd/.gitignore
     touch shell-scripts/this-folder-contains-non-environment-specific-shell-files.md
     
+    cp ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/jb_master.kjb \
+       ${PROJECT_CODE_DIR}/pdi/repo/${PSGRS_PROJECT_NAME}
+    
+    mv ${PROJECT_CODE_DIR}/pdi/repo/${PSGRS_PROJECT_NAME}/jb_master.kjb \
+       ${PROJECT_CODE_DIR}/pdi/repo/${PSGRS_PROJECT_NAME}/jb_${PSGRS_PROJECT_NAME}_master.kjb
 
     echo "Creating basic README file ..."
     echo "Documentation can be found in the dedicated documentation Git repo called ${PSGRS_PROJECT_NAME}-documentation" > readme.md
