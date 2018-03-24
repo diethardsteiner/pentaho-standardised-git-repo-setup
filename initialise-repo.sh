@@ -104,8 +104,8 @@ done
 
 # Example Usage:
 # /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a standalone_project_config -g mysampleproj -p mys -e dev -s file-based
-# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 2 -g mysampleproj -p mys -e dev -s file-based
-# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 2 -g mysampleproj -p mys -e dev -s file-repo
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-based
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-repo
 
 
 

@@ -93,7 +93,7 @@ PROJECT_LOG_HOME="${LOG_DIR}/${PROJECT_NAME}/${PDI_ENV}"
 ##                      ______________________                        ##
 
 # PDI repo name
-PDI_REPO_NAME="yourRepoName"
+PDI_REPO_NAME="${PROJECT_NAME}"
 # PDI user name
 PDI_REPO_USER="yourUserName"
 # PDI password
@@ -181,12 +181,7 @@ cd ${PDI_DIR}
 
 if [ ${IS_PDI_REPO_BASED} = "Y" ]
 then
-  ./kitchen.sh \
-  -rep="${PDI_REPO_NAME}" \ 
-  -user="${PDI_REPO_USER}" \
-  -pass="${PDI_REPO_PASS}" \
-  -dir="${WRAPPER_JOB_HOME}" \ 
-  -job="${WRAPPER_JOB_NAME}" \
+  ./kitchen.sh -rep="${PDI_REPO_NAME}" -user="${PDI_REPO_USER}" -pass="${PDI_REPO_PASS}" -dir="${WRAPPER_JOB_HOME}" -job="${WRAPPER_JOB_NAME}" \
   -param:PARAM_PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
   -param:PARAM_JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
   -param:PARAM_JOB_NAME="${JOB_NAME}" \
