@@ -4,7 +4,7 @@
   <description />
   <extended_description />
   <job_version />
-  <directory>/</directory>
+  <directory>/{{ PSGRS_PROJECT_NAME }}</directory>
   <created_user>-</created_user>
   <created_date>2018/03/22 22:12:33.002</created_date>
   <modified_user>-</modified_user>
@@ -320,7 +320,7 @@
       <name>Write To Log</name>
       <description />
       <type>WRITE_TO_LOG</type>
-      <logmessage>========== STARTING MASTER JOB ===========</logmessage>
+      <logmessage>========== STARTING {{ PSGRS_PROJECT_NAME }} MASTER JOB ===========</logmessage>
       <loglevel>Basic</loglevel>
       <logsubject />
       <parallel>N</parallel>

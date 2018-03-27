@@ -46,6 +46,8 @@ cd ${BASE_DIR}
 # If your setup is different, adjust accordingly
 
 # Get path to current git repo root
+## [OPEN] In prod env this will not necessarily be within a git repo
+## since it might be deployed by other means, so we cannot use the git command!
 PROJECT_GIT_DIR=`git rev-parse --show-toplevel`
 # Extract project name and environment from the standardised project folder name
 # The folder name gets initially standardised by the `initialise-repo.sh`

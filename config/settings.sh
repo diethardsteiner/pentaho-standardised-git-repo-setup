@@ -12,7 +12,7 @@ export PSGRS_MODULES_GIT_REPO_URL=git@github.com:diethardsteiner/pentaho-pdi-mod
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
 ### TARGET ENVIRONMENT SETTINGS ###
 export PSGRS_PDI_DIR=${HOME}/apps/data-integration
-export PSGRS_LOG_DIR=${HOME}/logs
+#export PSGRS_LOG_DIR=${HOME}/logs
 # OPEN: NEXT FOUR ONES NOT INTEGRATED YET ... they are for the wrapper.sh
 export PSGRS_PDI_REPO_NAME=
 export PSGRS_PDI_REPO_USER=

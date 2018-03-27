@@ -40,6 +40,9 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "                   Minimum of 3 to a maximum of 10 letters."
     echo "-s  STORAGE TYPE:  Which type of PDI storage type to use."
     echo "                   Possible values: file-based, file-repo. Not supported: db-repo, ee-repo"
+    echo "-w  WEB-SPOON:     Optional. If you intend to run everything within a WebSpoon Docker container."
+    echo "                   For now only relevant if you use the file-based PDI repository."
+    echo "                   Possible values: yes"
     echo ""
     echo "Sample usage:"
     echo "initialise-repo.sh -a standalone_project_config -g mysampleproj -p msp -e dev -s file-based"
@@ -51,7 +54,7 @@ fi
 
 
 # while getopts ":a:p:d:u:" opt; do
-while getopts ":a:g:p:e:s:" opt; do
+while getopts ":a:g:p:e:s:w:" opt; do
   case $opt in
     a) PSGRS_ACTION="$OPTARG"
         echo "Submitted PSGRS_ACTION value: ${PSGRS_ACTION}"
@@ -95,6 +98,9 @@ while getopts ":a:g:p:e:s:" opt; do
           exit 1
         fi
     ;;
+    w) PSGRS_PDI_WEBSPOON_SUPPORT="$OPTARG"
+        echo "Submitted WebSpoon Support value: ${PSGRS_PDI_WEBSPOON_SUPPORT}" 
+    ;;
     \?) 
       echo "Invalid option -$OPTARG" >&2
       exit 1
@@ -106,7 +112,7 @@ done
 # /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a standalone_project_config -g mysampleproj -p mys -e dev -s file-based
 # /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-based
 # /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-repo
-
+# /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-repo -w yes
 
 
 # Main Script
@@ -174,46 +180,6 @@ function pdi_module {
   fi
 }
 
-function pdi_module_repo {
-  # check if required parameter values are available
-  if [ -z ${PSGRS_ACTION} ]; then
-    echo "Not all required arguments were supplied. Required:"
-    echo "-a <PSGRS_ACTION>"
-    echo "exiting ..."
-    exit 1
-  fi
-  echo "================PDI MODULES REPO===================="
-  PDI_MODULES_REPO_DIR=${PSGRS_BASE_DIR}/modules-pdi-repo
-  echo "PDI_MODULES_REPO_DIR: ${PDI_MODULES_REPO_DIR}"
-  if [ ! -d "${PDI_MODULES_REPO_DIR}" ]; then
-    echo "Creating and pointing to default git branch"
-    git checkout -b dev
-    echo "Creating PDI modules repo folder ..."
-    mkdir ${PDI_MODULES_REPO_DIR}
-    echo "Initialising Git Repo ..."
-    cd ${PDI_MODULES_REPO_DIR}
-    git init .
-    # echo "Adding Git hooks ..."
-    # cp ${PSGRS_SHELL_DIR}/artefacts/git/hooks/* ${PDI_MODULES_REPO_DIR}/.git/hooks
-    echo "Adding kettle db connection files ..."
-    cp -r ${PSGRS_SHELL_DIR}/artefacts/pdi/repo/*.kdb .
-
-    perl -0777 \
-      -pe "s@\{\{ VAR_DB_CONNECTION_NAME \}\}@sample_db_connection@igs" \
-      -i ${PDI_MODULES_REPO_DIR}/db_connection_template.kdb     
-
-
-    echo "Adding pdi modules as a git submodule ..."
-    git submodule add -b master ${PSGRS_MODULES_GIT_REPO_URL} modules
-    # the next command is only required in older git versions to get the content for the submodule
-    git submodule init
-    git submodule update
-
-    # enable pre-commit hook - do not currently work with modules repo since it is has one level less
-    # chmod 700 ${PDI_MODULES_REPO_DIR}/.git/hooks/pre-commit
-
-  fi 
-}
 
 function project_code {
   # check if required parameter values are available
@@ -293,11 +259,17 @@ function project_code {
       perl -0777 \
         -pe "s@\{\{ VAR_DB_CONNECTION_NAME \}\}@sample_db_connection@igs" \
         -i ${PROJECT_CODE_DIR}/pdi/repo/db_connection_template.kdb 
+
+      perl -0777 \
+        -pe "s@\{\{ PSGRS_PROJECT_NAME \}\}@${PSGRS_PROJECT_NAME}@igs" \
+        -i ${PROJECT_CODE_DIR}/pdi/repo/${PSGRS_PROJECT_NAME}/jb_${PSGRS_PROJECT_NAME}_master.kjb 
     fi
     
     if [ ${PSGRS_PDI_STORAGE_TYPE} = "file-based" ]; then
       # nothing to do: shared.xml is part of .kettle, which lives in the config repo
-      echo ""
+      perl -0777 \
+        -pe "s@\{\{ PSGRS_PROJECT_NAME \}\}@@igs" \
+        -i ${PROJECT_CODE_DIR}/pdi/repo/${PSGRS_PROJECT_NAME}/jb_${PSGRS_PROJECT_NAME}_master.kjb
     fi
 
     echo "Adding pdi modules as a git submodule ..."
@@ -399,6 +371,9 @@ function project_config {
       -pe "s@jb_name@jb_${PSGRS_PROJECT_NAME}_master@igs" \
       -i ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/run_jb_${PSGRS_PROJECT_NAME}_master.sh
 
+    cp ${PSGRS_SHELL_DIR}/artefacts/utilities/start-webspoon.sh \
+      ${PROJECT_CONFIG_DIR}/pdi/shell-scripts
+
     
     echo "Adding essential properties files ..."
 
@@ -482,7 +457,11 @@ function standalone_project_config {
 
     export PSGRS_PDI_REPO_NAME=${PSGRS_PROJECT_NAME}
     export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
-    export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
+    if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
+      export PSGRS_PDI_REPO_PATH=/root/repo
+    else
+      export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
+    fi
 
     envsubst \
       < ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/repositories-file.xml \
@@ -532,25 +511,6 @@ function standalone_project_config {
 
 }
 
-# retired since we use modules now
-# function common-code {
-#   echo "==========COMMON CODE=================="
-#   COMMON_CODE_DIR=${PSGRS_BASE_DIR}/common-code
-#   if [ ! -d "${COMMON_CODE_DIR}" ]; then 
-#     echo "Creating common config folder ..."
-#     echo "location: ${COMMON_CODE_DIR}" 
-#     mkdir ${COMMON_CODE_DIR}
-#     cd ${COMMON_CODE_DIR}
-#     echo "Initialising Git Repo ..."
-#     git init .
-#     echo "Creating Git Branch ${PSGRS_ENV} ..."
-#     git checkout -b ${PSGRS_ENV}
-#     echo "Creating basic folder structure ..."
-#     mkdir pdi mdx mondrian-schemas pentaho-solutions sql
-#     echo "Creating basic README file ..."
-#     echo "Common code for ${PSGRS_ENV} environment. Find documentation in dedicated docu repo." > ${COMMON_CODE_DIR}/readme.md
-#   fi
-# }
 
 function common_config {
   # check if required parameter values are available
@@ -609,7 +569,12 @@ function common_config {
 
       export PSGRS_PDI_REPO_NAME=${PSGRS_PROJECT_NAME}
       export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
-      export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
+      if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
+        export PSGRS_PDI_REPO_PATH=/root/repo
+      else
+        export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
+      fi
+
 
       envsubst \
         < ${PSGRS_SHELL_DIR}/artefacts/pdi/.kettle/repositories-file.xml \
@@ -763,10 +728,6 @@ fi
 
 if [ ${PSGRS_ACTION} = "pdi_module" ]; then 
   pdi_module
-fi
-
-if [ ${PSGRS_ACTION} = "pdi_module_repo" ]; then
-  pdi_module_repo
 fi
 
 if [ ${PSGRS_ACTION} = "project_code" ]; then
