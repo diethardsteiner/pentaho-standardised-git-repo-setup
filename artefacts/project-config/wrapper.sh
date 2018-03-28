@@ -93,7 +93,7 @@ PROJECT_LOG_HOME="${LOG_DIR}/${PROJECT_NAME}/${PDI_ENV}"
 ##                      ______________________                        ##
 
 # PDI repo name
-PDI_REPO_NAME="yourRepoName"
+PDI_REPO_NAME="{{ PSGRS_PROJECT_NAME }}"
 # PDI user name
 PDI_REPO_USER="yourUserName"
 # PDI password
