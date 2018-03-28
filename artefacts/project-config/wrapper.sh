@@ -46,6 +46,8 @@ cd ${BASE_DIR}
 # If your setup is different, adjust accordingly
 
 # Get path to current git repo root
+## [OPEN] In prod env this will not necessarily be within a git repo
+## since it might be deployed by other means, so we cannot use the git command!
 PROJECT_GIT_DIR=`git rev-parse --show-toplevel`
 # Extract project name and environment from the standardised project folder name
 # The folder name gets initially standardised by the `initialise-repo.sh`
@@ -181,12 +183,7 @@ cd ${PDI_DIR}
 
 if [ ${IS_PDI_REPO_BASED} = "Y" ]
 then
-  ./kitchen.sh \
-  -rep="${PDI_REPO_NAME}" \ 
-  -user="${PDI_REPO_USER}" \
-  -pass="${PDI_REPO_PASS}" \
-  -dir="${WRAPPER_JOB_HOME}" \ 
-  -job="${WRAPPER_JOB_NAME}" \
+  ./kitchen.sh -rep="${PDI_REPO_NAME}" -user="${PDI_REPO_USER}" -pass="${PDI_REPO_PASS}" -dir="${WRAPPER_JOB_HOME}" -job="${WRAPPER_JOB_NAME}" \
   -param:PARAM_PROJECT_PROPERTIES_FILE="${PROJECT_PROPERTIES_FILE}" \
   -param:PARAM_JOB_PROPERTIES_FILE="${JOB_PROPERTIES_FILE}" \
   -param:PARAM_JOB_NAME="${JOB_NAME}" \
