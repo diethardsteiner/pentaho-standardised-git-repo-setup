@@ -357,6 +357,11 @@ function project_config {
     cp ${PSGRS_SHELL_DIR}/artefacts/project-config/wrapper.sh \
        ${PROJECT_CONFIG_DIR}/pdi/shell-scripts
 
+    perl -0777 \
+      -pe "s@\{\{ PSGRS_PROJECT_NAME \}\}@${PSGRS_PROJECT_NAME}@igs" \
+      -i ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/wrapper.sh   
+
+
     cp ${PSGRS_SHELL_DIR}/artefacts/project-config/run_jb_name.sh \
        ${PROJECT_CONFIG_DIR}/pdi/shell-scripts
     
