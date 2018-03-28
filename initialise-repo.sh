@@ -374,6 +374,7 @@ function project_config {
     cp ${PSGRS_SHELL_DIR}/artefacts/utilities/start-webspoon.sh \
       ${PROJECT_CONFIG_DIR}/pdi/shell-scripts
 
+    chmod 700 ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/*.sh
     
     echo "Adding essential properties files ..."
 
@@ -458,7 +459,8 @@ function standalone_project_config {
     export PSGRS_PDI_REPO_NAME=${PSGRS_PROJECT_NAME}
     export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
     if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
-      export PSGRS_PDI_REPO_PATH=/root/repo
+      # we mount the project code repo into the Docker container under /root/my-project
+      export PSGRS_PDI_REPO_PATH=/root/my-project/pdi/repo
     else
       export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
     fi
@@ -570,7 +572,8 @@ function common_config {
       export PSGRS_PDI_REPO_NAME=${PSGRS_PROJECT_NAME}
       export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
       if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
-        export PSGRS_PDI_REPO_PATH=/root/repo
+        # we mount the project code repo into the Docker container under /root/my-project
+        export PSGRS_PDI_REPO_PATH=/root/my-project/pdi/repo
       else
         export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
       fi

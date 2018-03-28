@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Starting WebSpoon ..."
+echo "Starting WebSpoon ... FOR LOCAL DEV ONLY!"
 echo ""
 echo "Mapping following local Kettle Home folder to a Docker Volume:"
 echo "$KETTLE_HOME"
@@ -34,10 +34,11 @@ echo "available under /root/repo when accessed via WebSpoon."
 
 sudo docker run -it --rm \
   -e JAVA_OPTS="-Xms1024m -Xmx2048m" \
+  -e KETTLE_HOME="/root/pdi/config" \
   -p 8080:8080 \
-  -v ${KETTLE_HOME}/.kettle:/root/.kettle:z \
-  -v ${KETTLE_HOME}/.pentaho:/root/.pentaho:z \
-  -v ${PROJECT_CODE_PDI_REPO_DIR}:/root/repo:z \
+  -v ${KETTLE_HOME}/.kettle:/root/pdi/config/.kettle:z \
+  -v ${KETTLE_HOME}/.pentaho:/root/pdi/config/.pentaho:z \
+  -v ${PROJECT_CODE_DIR}:/root/my-project/:z \
   hiromuhota/webspoon:latest-full
 
 # OPEN: Instead of including the pdi repo dir we could include the whole code git repo
