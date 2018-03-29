@@ -45,15 +45,14 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "                   Possible values: yes"
     echo ""
     echo "Sample usage:"
-    echo "initialise-repo.sh -a standalone_project_config -g mysampleproj -p msp -e dev -s file-based"
+    echo "initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-repo -w yes"
     echo "initialise-repo.sh -a 2 -g mysampleproj -p msp -e dev -s file-repo"
+    echo "initialise-repo.sh -a standalone_project_config -g mysampleproj -p msp -e dev -s file-based"
     echo ""
     echo "exiting ..."
     exit 1
 fi
 
-
-# while getopts ":a:p:d:u:" opt; do
 while getopts ":a:g:p:e:s:w:" opt; do
   case $opt in
     a) PSGRS_ACTION="$OPTARG"
@@ -465,7 +464,7 @@ function standalone_project_config {
     export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
     if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
       # we mount the project code repo into the Docker container under /root/my-project
-      export PSGRS_PDI_REPO_PATH=/root/my-project/pdi/repo
+      export PSGRS_PDI_REPO_PATH=/root/${PSGRS_GROUP_NAME}/${PSGRS_PROJECT_NAME}-code/pdi/repo
     else
       export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
     fi
@@ -578,7 +577,7 @@ function common_config {
       export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
       if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
         # we mount the project code repo into the Docker container under /root/my-project
-        export PSGRS_PDI_REPO_PATH=/root/my-project/pdi/repo
+        export PSGRS_PDI_REPO_PATH=/root/${PSGRS_GROUP_NAME}/${PSGRS_PROJECT_NAME}-code/pdi/repo
       else
         export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
       fi
@@ -711,7 +710,7 @@ function common_docu {
 }
 
 
-
+# full setup with common config
 if [ ${PSGRS_ACTION} = "1" ]; then 
   project_docu
   common_docu
@@ -722,8 +721,22 @@ if [ ${PSGRS_ACTION} = "1" ]; then
   # copy utility scripts
   cd ${PSGRS_BASE_DIR}
   cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repos.sh .
+
+
+cat > ${PSGRS_BASE_DIR}/start-webspoon.sh <<EOL
+sudo docker run -it --rm \
+-e JAVA_OPTS="-Xms1024m -Xmx2048m" \
+-e KETTLE_HOME="/root/${PSGRS_GROUP_NAME}/common-config-${PSGRS_ENV}/pdi/" \
+-p 8080:8080 \
+-v ${PSGRS_BASE_DIR}:/root/${PSGRS_GROUP_NAME}/:z \
+hiromuhota/webspoon:latest-full
+EOL
+
+  chmod 700 ${PSGRS_BASE_DIR}/*.sh
+
 fi
 
+# full setup without common config
 if [ ${PSGRS_ACTION} = "2" ]; then 
   project_code
   project_docu
@@ -732,6 +745,19 @@ if [ ${PSGRS_ACTION} = "2" ]; then
   # copy utility scripts
   cd ${PSGRS_BASE_DIR}
   cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repos.sh .
+
+
+cat > ${PSGRS_BASE_DIR}/start-webspoon.sh <<EOL
+sudo docker run -it --rm \
+-e JAVA_OPTS="-Xms1024m -Xmx2048m" \
+-e KETTLE_HOME="/root/${PSGRS_GROUP_NAME}/${PSGRS_PROJECT_NAME}-config-${PSGRS_ENV}/pdi/" \
+-p 8080:8080 \
+-v ${PSGRS_BASE_DIR}:/root/${PSGRS_GROUP_NAME}/:z \
+hiromuhota/webspoon:latest-full
+EOL
+
+  chmod 700 ${PSGRS_BASE_DIR}/*.sh
+
 fi
 
 if [ ${PSGRS_ACTION} = "pdi_module" ]; then 
