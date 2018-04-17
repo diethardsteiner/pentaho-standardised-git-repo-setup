@@ -375,9 +375,6 @@ function project_config {
       -pe "s@jb_name@jb_${PSGRS_PROJECT_NAME}_master@igs" \
       -i ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/run_jb_${PSGRS_PROJECT_NAME}_master.sh
 
-    cp ${PSGRS_SHELL_DIR}/artefacts/utilities/start-webspoon.sh \
-      ${PROJECT_CONFIG_DIR}/pdi/shell-scripts
-
     chmod 700 ${PROJECT_CONFIG_DIR}/pdi/shell-scripts/*.sh
     
     echo "Adding essential properties files ..."
