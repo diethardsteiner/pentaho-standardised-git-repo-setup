@@ -85,7 +85,7 @@ fi
 # Absolute path for home directory of project properties files
 PROJECT_CONFIG_HOME="${BASE_DIR}/${PROJECT_NAME}-config-${PDI_ENV}"
 # Absolute path for home directory of project log files
-PROJECT_LOG_HOME="${LOG_DIR}/${PROJECT_NAME}/${PDI_ENV}"
+PROJECT_LOG_HOME="${BASE_DIR}/logs/${PDI_ENV}"
 
 
 
@@ -189,6 +189,8 @@ then
   -param:PARAM_JOB_NAME="${JOB_NAME}" \
   -param:PARAM_TRANSFORMATION_NAME="" \
   -param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PDI_ARTEFACT_DIRECTORY_PATH}" \
+  -param:PARAM_CONTROL_FILE_DIRECTORY="/tmp/{{ PSGRS_PROJECT_NAME }}/" \
+  -param:PARAM_CONTROL_FILE_NAME="${JOB_NAME}" \
   >> ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} 2>&1
 else
   ./kitchen.sh \
@@ -198,6 +200,8 @@ else
   -param:PARAM_JOB_NAME="${JOB_NAME}" \
   -param:PARAM_TRANSFORMATION_NAME="" \
   -param:PARAM_PDI_ARTEFACT_DIRECTORY_PATH="${PROJECT_CODE_PDI_REPO_DIR}/${PDI_ARTEFACT_DIRECTORY_PATH}" \
+  -param:PARAM_CONTROL_FILE_DIRECTORY="/tmp/{{ PSGRS_PROJECT_NAME }}/" \
+  -param:PARAM_CONTROL_FILE_NAME="${JOB_NAME}" \
   >> ${PROJECT_LOG_HOME}/${JOB_LOG_FILE} 2>&1
 fi
 

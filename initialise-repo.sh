@@ -40,13 +40,15 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "                   Minimum of 3 to a maximum of 10 letters."
     echo "-s  STORAGE TYPE:  Which type of PDI storage type to use."
     echo "                   Possible values: file-based, file-repo. Not supported: db-repo, ee-repo"
+    echo "                   File-repo is only partially supported. You will have to create your own modules/wrapper jobs."
     echo "-w  WEB-SPOON:     Optional. If you intend to run everything within a WebSpoon Docker container."
     echo "                   For now only relevant if you use the file-based PDI repository."
     echo "                   Possible values: yes"
     echo ""
     echo "Sample usage:"
-    echo "initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-repo -w yes"
-    echo "initialise-repo.sh -a 2 -g mysampleproj -p msp -e dev -s file-repo"
+    echo "initialise-repo.sh -a 1 -g mysampleproj -p msp -e dev -s file-based"
+    echo "initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-based -w yes"
+    echo "initialise-repo.sh -a 2 -g mysampleproj -p msp -e dev -s file-based"
     echo "initialise-repo.sh -a standalone_project_config -g mysampleproj -p msp -e dev -s file-based"
     echo ""
     echo "exiting ..."
@@ -727,6 +729,10 @@ sudo docker run -it --rm \
 -p 8080:8080 \
 -v ${PSGRS_BASE_DIR}:/root/${PSGRS_GROUP_NAME}/:z \
 hiromuhota/webspoon:latest-full
+echo ""
+echo "WebSpoon UI available on http://localhost:8080/spoon/spoon"
+echo "Note: Any shell scripts have to be executed from within the container!"
+echo "The config is set up to only work within the container!"
 EOL
 
   chmod 700 ${PSGRS_BASE_DIR}/*.sh
@@ -751,6 +757,10 @@ sudo docker run -it --rm \
 -p 8080:8080 \
 -v ${PSGRS_BASE_DIR}:/root/${PSGRS_GROUP_NAME}/:z \
 hiromuhota/webspoon:latest-full
+echo ""
+echo "WebSpoon UI available on http://localhost:8080/spoon/spoon"
+echo "Note: Any shell scripts have to be executed from within the container!"
+echo "The config is set up to only work within the container!"
 EOL
 
   chmod 700 ${PSGRS_BASE_DIR}/*.sh
