@@ -30,10 +30,10 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "Mandatory arguments:"
     echo " "
     echo "-g  GROUP NAME:    Full Project Name, e.g. world-wide-trading"
-		echo "                   Lower case, only letters allowed, no underscores, dashes etc."
+    echo "                   Lower case, only letters allowed, no underscores, dashes etc."
     echo "                   Minimum of 3 to a maximum of 20 letters."
     echo "-p  PROJECT NAME:  Project name abbreviation, e.g. wwt"
-		echo "                   Lower case, only letters allowed, no underscores, dashes etc."
+    echo "                   Lower case, only letters allowed, no underscores, dashes etc."
     echo "                   Minimum of 3 to a maximum of 20 letters."
     echo "-e  ENVIRONMENT:   Name of the environment: dev, test, prod or similiar. "
     echo "                   Lower case, only letters allowed, no underscores, dashes etc"
@@ -43,11 +43,12 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     echo "                   File-repo is only partially supported. You will have to create your own modules/wrapper jobs."
     echo "-w  WEB-SPOON:     Optional. If you intend to run everything within a WebSpoon Docker container."
     echo "                   For now only relevant if you use the file-based PDI repository."
+    echo "                   Using this option means config won't work outside the container!"
     echo "                   Possible values: yes"
     echo ""
     echo "Sample usage:"
     echo "initialise-repo.sh -a 1 -g mysampleproj -p msp -e dev -s file-based"
-    echo "initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-based -w yes"
+    echo "initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-repo -w yes"
     echo "initialise-repo.sh -a 2 -g mysampleproj -p msp -e dev -s file-based"
     echo "initialise-repo.sh -a standalone_project_config -g mysampleproj -p msp -e dev -s file-based"
     echo ""
@@ -60,9 +61,9 @@ while getopts ":a:g:p:e:s:w:" opt; do
     a) PSGRS_ACTION="$OPTARG"
         echo "Submitted PSGRS_ACTION value: ${PSGRS_ACTION}"
     ;;
-		g) export PSGRS_GROUP_NAME="$OPTARG"
-        echo "Submitted project name value: ${PSGRS_GROUP_NAME}"
-        if [[ ! ${PSGRS_GROUP_NAME} =~ ^[a-z\-]{3,40}$ ]]; then
+    g) export PSGRS_PROJECT_GROUP_NAME="$OPTARG"
+        echo "Submitted project name value: ${PSGRS_PROJECT_GROUP_NAME}"
+        if [[ ! ${PSGRS_PROJECT_GROUP_NAME} =~ ^[a-z\-]{3,40}$ ]]; then
           echo "Unsupported group name!"
           echo "Lower case, only letters and dashes allowed, no underscores etc."
           echo "Minimum of 3 to a maximum of 40 characters."
@@ -116,38 +117,57 @@ done
 # /home/dsteiner/git/pentaho-standardised-git-repo-setup/initialise-repo.sh -a 1 -g mysampleproj -p mys -e dev -s file-repo -w yes
 
 
-# Main Script
+# MAIN SCRIPT
 
 PSGRS_WORKING_DIR=`pwd`
 PSGRS_SHELL_DIR=$(dirname $0)
 
+# Source config settings
+source ${PSGRS_SHELL_DIR}/config/settings.sh
+
+
+PSGRS_COMMON_GROUP_NAME=${PSGRS_G_COMMON_GROUP_NAME}
+# folder that holds the common and project specific repos
+# added as there some scripts that sit outside the repos
+PSGRS_DEPLOYMENT_FOLDER_NAME=${PSGRS_G_DEPLOYMENT_FOLDER_NAME}
 # create top level folder to not pollute any other folder
 
 # make sure group name value is set
-if [ -z ${PSGRS_GROUP_NAME} ]; then
-	echo "Not all required arguments were supplied. Group Name value missing."
-	echo "exiting ..."
-	exit 1
+if [ -z ${PSGRS_PROJECT_GROUP_NAME} ]; then
+  echo "Not all required arguments were supplied. Group Name value missing."
+  echo "exiting ..."
+  exit 1
 fi
 
 # check if directory already exists
 # otherwise create it
-if [ ! -d "${PSGRS_GROUP_NAME}" ]; then
-  mkdir ${PSGRS_GROUP_NAME}
+if [ ! -d "${PSGRS_DEPLOYMENT_FOLDER_NAME}" ]; then
+  mkdir ${PSGRS_DEPLOYMENT_FOLDER_NAME}
 fi
 
-cd ${PSGRS_GROUP_NAME}
-export PSGRS_BASE_DIR=${PSGRS_WORKING_DIR}/${PSGRS_GROUP_NAME}
+cd ${PSGRS_DEPLOYMENT_FOLDER_NAME}
+
+if [ ! -d "${PSGRS_COMMON_GROUP_NAME}" ]; then
+  mkdir ${PSGRS_COMMON_GROUP_NAME}
+fi
+
+if [ ! -d "${PSGRS_PROJECT_GROUP_NAME}" ]; then
+  mkdir ${PSGRS_PROJECT_GROUP_NAME}
+fi
+
+PSGRS_DEPLOYMENT_DIR=${PSGRS_WORKING_DIR}/${PSGRS_DEPLOYMENT_FOLDER_NAME}
+PSGRS_COMMON_GROUP_DIR=${PSGRS_WORKING_DIR}/${PSGRS_DEPLOYMENT_FOLDER_NAME}/${PSGRS_COMMON_GROUP_NAME}
+PSGRS_PROJECT_GROUP_DIR=${PSGRS_WORKING_DIR}/${PSGRS_DEPLOYMENT_FOLDER_NAME}/${PSGRS_PROJECT_GROUP_NAME}
 
 
-echo "=============="
-echo "PSGRS SHELL DIR: " ${PSGRS_SHELL_DIR}
-echo "PSGRS BASE DIR: " ${PSGRS_BASE_DIR}
-
-
-# Source config settings
-
-source ${PSGRS_SHELL_DIR}/config/settings.sh
+echo "===============** PSGRS PATHS **===================="
+echo ""
+echo "PSGRS SHELL DIR:          ${PSGRS_SHELL_DIR}"
+echo "PSGRS_DEPLOYMENT_DIR:     ${PSGRS_DEPLOYMENT_DIR}"
+echo "PSGRS COMMON GROUP DIR:   ${PSGRS_COMMON_GROUP_DIR}"
+echo "PSGRS PROJECT GROUP DIR:  ${PSGRS_PROJECT_GROUP_DIR}"
+echo ""
+echo "===================================================="
 
 function pdi_module {
   # check if required parameter values are available
@@ -158,7 +178,8 @@ function pdi_module {
     exit 1
   fi
   echo "================PDI MODULES===================="
-  PDI_MODULES_DIR=${PSGRS_BASE_DIR}/modules
+  cd ${PSGRS_COMMON_GROUP_DIR}
+  PDI_MODULES_DIR=${PSGRS_COMMON_GROUP_DIR}/modules
   echo "PDI_MODULES_DIR: ${PDI_MODULES_DIR}" 
   if [ ! -d "${PDI_MODULES_DIR}" ]; then
     echo "Creating and pointing to default git branch"
@@ -193,7 +214,8 @@ function project_code {
     exit 1
   fi
   echo "================PROJECT CODE===================="
-  PROJECT_CODE_DIR=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code
+  cd ${PSGRS_PROJECT_GROUP_DIR}
+  PROJECT_CODE_DIR=${PSGRS_PROJECT_GROUP_DIR}/${PSGRS_PROJECT_NAME}-code
   echo "PROJECT_CODE_DIR: ${PROJECT_CODE_DIR}"
 
   if [ ! -d "${PROJECT_CODE_DIR}" ]; then
@@ -309,7 +331,8 @@ function project_config {
     exit 1
   fi
   echo "================PROJECT CONFIG=================="
-  PROJECT_CONFIG_DIR=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-config-${PSGRS_ENV}
+  cd ${PSGRS_PROJECT_GROUP_DIR}
+  PROJECT_CONFIG_DIR=${PSGRS_PROJECT_GROUP_DIR}/${PSGRS_PROJECT_NAME}-config-${PSGRS_ENV}
   echo "PROJECT_CONFIG_DIR: ${PROJECT_CONFIG_DIR}"
 
   if [ ! -d "${PROJECT_CONFIG_DIR}" ]; then 
@@ -463,9 +486,9 @@ function standalone_project_config {
     export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
     if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
       # we mount the project code repo into the Docker container under /root/my-project
-      export PSGRS_PDI_REPO_PATH=/root/${PSGRS_GROUP_NAME}/${PSGRS_PROJECT_NAME}-code/pdi/repo
+      export PSGRS_PDI_REPO_PATH=/root/${PSGRS_DEPLOYMENT_FOLDER_NAME}/${PSGRS_PROJECT_GROUP_NAME}/${PSGRS_PROJECT_NAME}-code/pdi/repo
     else
-      export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
+      export PSGRS_PDI_REPO_PATH=${PSGRS_PROJECT_GROUP_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
     fi
 
     envsubst \
@@ -528,7 +551,8 @@ function common_config {
     exit 1
   fi
   echo "==========COMMON CONFIG=================="
-  COMMON_CONFIG_DIR=${PSGRS_BASE_DIR}/common-config-${PSGRS_ENV}
+  cd ${PSGRS_COMMON_GROUP_DIR}
+  COMMON_CONFIG_DIR=${PSGRS_COMMON_GROUP_DIR}/common-config-${PSGRS_ENV}
   echo "COMMON_CONFIG_DIR: ${COMMON_CONFIG_DIR}"
   if [ ! -d "${COMMON_CONFIG_DIR}" ]; then 
 
@@ -576,9 +600,9 @@ function common_config {
       export PSGRS_PDI_REPO_DESCRIPTION="This is the repo for the ${PSGRS_PROJECT_NAME} project"
       if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
         # we mount the project code repo into the Docker container under /root/my-project
-        export PSGRS_PDI_REPO_PATH=/root/${PSGRS_GROUP_NAME}/${PSGRS_PROJECT_NAME}-code/pdi/repo
+        export PSGRS_PDI_REPO_PATH=/root/${PSGRS_DEPLOYMENT_FOLDER_NAME}/${PSGRS_PROJECT_GROUP_NAME}/${PSGRS_PROJECT_NAME}-code/pdi/repo
       else
-        export PSGRS_PDI_REPO_PATH=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
+        export PSGRS_PDI_REPO_PATH=${PSGRS_PROJECT_GROUP_DIR}/${PSGRS_PROJECT_NAME}-code/pdi/repo
       fi
 
 
@@ -647,7 +671,8 @@ function project_docu {
     exit 1
   fi
   echo "===========PROJECT DOCUMENTATION=================="
-  PROJECT_DOCU_DIR=${PSGRS_BASE_DIR}/${PSGRS_PROJECT_NAME}-documentation
+  cd ${PSGRS_PROJECT_GROUP_DIR}
+  PROJECT_DOCU_DIR=${PSGRS_PROJECT_GROUP_DIR}/${PSGRS_PROJECT_NAME}-documentation
   echo "PROJECT_DOCU_DIR: ${PROJECT_DOCU_DIR}"
   if [ ! -d "${PROJECT_DOCU_DIR}" ]; then 
 
@@ -682,7 +707,8 @@ function common_docu {
     exit 1
   fi
   echo "===========COMMON DOCUMENTATION=================="
-  COMMON_DOCU_DIR=${PSGRS_BASE_DIR}/common-documentation
+  cd ${PSGRS_COMMON_GROUP_DIR}
+  COMMON_DOCU_DIR=${PSGRS_COMMON_GROUP_DIR}/common-documentation
   echo "COMMON_DOCU_DIR: ${COMMON_DOCU_DIR}"
   if [ ! -d "${COMMON_DOCU_DIR}" ]; then 
 
@@ -711,31 +737,32 @@ function common_docu {
 
 # full setup with common config
 if [ ${PSGRS_ACTION} = "1" ]; then 
+  project_config
+  project_code
   project_docu
   common_docu
-  project_code
-  project_config
   common_config
 
   # copy utility scripts
-  cd ${PSGRS_BASE_DIR}
-  cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repos.sh .
+  cd ${PSGRS_DEPLOYMENT_DIR}
+  cp ${PSGRS_SHELL_DIR}/artefacts/git/update-all-git-repos.sh .
 
-
-cat > ${PSGRS_BASE_DIR}/start-webspoon.sh <<EOL
+  if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
+cat > ${PSGRS_DEPLOYMENT_DIR}/start-webspoon.sh <<EOL
 sudo docker run -it --rm \
 -e JAVA_OPTS="-Xms1024m -Xmx2048m" \
--e KETTLE_HOME="/root/${PSGRS_GROUP_NAME}/common-config-${PSGRS_ENV}/pdi/" \
+-e KETTLE_HOME="/root/${PSGRS_DEPLOYMENT_FOLDER_NAME}/${PSGRS_COMMON_GROUP_NAME}/common-config-${PSGRS_ENV}/pdi/" \
 -p 8080:8080 \
--v ${PSGRS_BASE_DIR}:/root/${PSGRS_GROUP_NAME}/:z \
+-v ${PSGRS_DEPLOYMENT_DIR}:/root/${PSGRS_DEPLOYMENT_FOLDER_NAME}/:z \
 hiromuhota/webspoon:latest-full
 echo ""
 echo "WebSpoon UI available on http://localhost:8080/spoon/spoon"
 echo "Note: Any shell scripts have to be executed from within the container!"
 echo "The config is set up to only work within the container!"
 EOL
+  fi
 
-  chmod 700 ${PSGRS_BASE_DIR}/*.sh
+  chmod 700 ${PSGRS_DEPLOYMENT_DIR}/*.sh
 
 fi
 
@@ -746,24 +773,24 @@ if [ ${PSGRS_ACTION} = "2" ]; then
   standalone_project_config
 
   # copy utility scripts
-  cd ${PSGRS_BASE_DIR}
-  cp ${PSGRS_SHELL_DIR}/artefacts/git/update_all_git_repos.sh .
+  cd ${PSGRS_DEPLOYMENT_DIR}
+  cp ${PSGRS_SHELL_DIR}/artefacts/git/update-all-git-repos.sh .
 
-
-cat > ${PSGRS_BASE_DIR}/start-webspoon.sh <<EOL
+  if [ "${PSGRS_PDI_WEBSPOON_SUPPORT}" = "yes" ]; then
+cat > ${PSGRS_DEPLOYMENT_DIR}/start-webspoon.sh <<EOL
 sudo docker run -it --rm \
 -e JAVA_OPTS="-Xms1024m -Xmx2048m" \
--e KETTLE_HOME="/root/${PSGRS_GROUP_NAME}/${PSGRS_PROJECT_NAME}-config-${PSGRS_ENV}/pdi/" \
+-e KETTLE_HOME="/root/${PSGRS_DEPLOYMENT_FOLDER_NAME}/${PSGRS_PROJECT_GROUP_NAME}/${PSGRS_PROJECT_NAME}-config-${PSGRS_ENV}/pdi/" \
 -p 8080:8080 \
--v ${PSGRS_BASE_DIR}:/root/${PSGRS_GROUP_NAME}/:z \
+-v ${PSGRS_PROJECT_GROUP_DIR}:/root/${PSGRS_DEPLOYMENT_FOLDER_NAME}/:z \
 hiromuhota/webspoon:latest-full
 echo ""
 echo "WebSpoon UI available on http://localhost:8080/spoon/spoon"
 echo "Note: Any shell scripts have to be executed from within the container!"
 echo "The config is set up to only work within the container!"
 EOL
-
-  chmod 700 ${PSGRS_BASE_DIR}/*.sh
+  fi
+  chmod 700 ${PSGRS_DEPLOYMENT_DIR}/*.sh
 
 fi
 
