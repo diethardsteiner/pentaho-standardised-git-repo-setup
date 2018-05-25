@@ -9,6 +9,11 @@ export PSGRS_MODULES_GIT_REPO_URL=git@github.com:diethardsteiner/pentaho-pdi-mod
 # **Note**: If this repo is not present yet, use this script 
 # to create it and push it to your Git Server (GitHub, etc).
 
+# name of the common group name folder
+export PSGRS_G_COMMON_GROUP_NAME="pentaho-common"
+# name of the deployment folder, which holds the group and project folder
+export PSGRS_G_DEPLOYMENT_FOLDER_NAME="psgr-target"
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
 ### TARGET ENVIRONMENT SETTINGS ###
 export PSGRS_PDI_DIR=${HOME}/apps/data-integration
