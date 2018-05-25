@@ -6,6 +6,8 @@
 ##                      ______________________                        ##
 
 
+## ------ THIS MEANT TO WORK WITH A FILE BASED PDI APPRACH ONLY ----- ##
+
 # environmental argument parameter
 if [ $# -eq 0 ] || [ -z "$1" ] || [ -z "$2" ]
   then
@@ -53,29 +55,32 @@ PROJECT_CONFIG_DIR=${WRAPPER_DIR%/*/*}
 DEPLOYMENT_DIR=${WRAPPER_DIR%/*/*/*/*}
 # Get project group name
 PROJECT_GROUP_DIR=${WRAPPER_DIR%/*/*/*}
+# Get name of project group folder 
+PROJECT_GROUP_FOLDER_NAME=${PROJECT_GROUP_DIR##*/}
 
-# The following sections expects the common config to be externalised:
-# If your setup is different, adjust accordingly
+# The following sections expects:
+# Either a common config in a common group folder
+# Or a standalone project (no common config)
 
 # Extract project name and environment from the standardised project folder name
 # The folder name gets initially standardised by the `initialise-repo.sh`
 # Get last `/` and apply substring from there to the end
-PROJECT_CONFIG_FOLDER=${PROJECT_CONFIG_DIR##*/}
+PROJECT_CONFIG_FOLDER_NAME=${PROJECT_CONFIG_DIR##*/}
 # Get substring from first character to first `-`
-PROJECT_NAME=${PROJECT_CONFIG_FOLDER%%-*}
+PROJECT_NAME=${PROJECT_CONFIG_FOLDER_NAME%%-*}
 # Get substring from last `-` to the end
-PDI_ENV=${PROJECT_CONFIG_FOLDER##*-}
+PDI_ENV=${PROJECT_CONFIG_FOLDER_NAME##*-}
 # build path for project code dir
-PROJECT_CODE_DIR=${PROJECT_CONFIG_DIR%%-*}-code
+PROJECT_CODE_DIR=${PROJECT_GROUP_DIR}/${PROJECT_NAME}-code
 # path to di files root dir - used for file-based pdi approach 
 PROJECT_CODE_PDI_REPO_DIR=${PROJECT_CODE_DIR}/pdi/repo
 # Path to the environment specific common configuration
-# [OPEN]: make `pentaho-common` configuratble - var already exists
+# [OPEN]: make `pentaho-common` configurable - var already exists
 COMMON_CONFIG_DIR="${DEPLOYMENT_DIR}/pentaho-common/common-config-${PDI_ENV}"
 # workaround so that we can handle standalone projects as well
 if [ ! -d ${COMMON_CONFIG_DIR} ]; then 
   echo "No common config exists, so assuming it is a standalone project ..."
-  COMMON_CONFIG_DIR="${DEPLOYMENT_DIR}/${PROJECT_NAME}-config-${PDI_ENV}"
+  COMMON_CONFIG_DIR="${DEPLOYMENT_DIR}/${PROJECT_GROUP_FOLDER_NAME}/${PROJECT_NAME}-config-${PDI_ENV}"
 fi
 # source common environment variables here so that they can be used straight away for project specifc variables
 source ${COMMON_CONFIG_DIR}/pdi/shell-scripts/set-env-variables.sh
@@ -89,11 +94,9 @@ else
     echo "... so assuming there is a file-based PDI setup in place."
     IS_PDI_REPO_BASED="N"
 fi
-# Absolute path for home directory of project properties files
-# PROJECT_CONFIG_DIR="${DEPLOYMENT_DIR}/${PROJECT_NAME}-config-${PDI_ENV}"
-# disabled since already extracted further up
-# Absolute path for home directory of project log files
-PROJECT_LOG_HOME="${DEPLOYMENT_DIR}/logs/${PDI_ENV}"
+
+# Absolute path for project log files
+PROJECT_LOG_HOME="${PROJECT_GROUP_DIR}/logs/${PDI_ENV}"
 
 
 
