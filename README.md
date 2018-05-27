@@ -247,3 +247,32 @@ You cannot achieve exactly the same behaviour from within Spoon. However, for te
 	- Lookup Data: E.g. business user provide you with lookup data to enrich operational data. This should be stored separately. 
 	- Test Data: Can be stored with your code since it serves the purpose of testing the quality of your code.  
 - **Binary files**: Excel, Word, Zip files etc
+
+# Errors
+
+## Your Terminal is not configured to use Bash Shell
+
+Different errors manifest themselves (e.g. `[[ not found`) if your terminal / user is not configured to use bash shell. 
+
+Run this command to find out what shell your user has assigned:
+
+```
+grep $USER /etc/passwd
+```
+
+If it is not returing a path pointing to bash, then check which shells are available on your system:
+
+```
+cat /etc/shells
+```
+
+change your user's shell to bash like so:
+
+```
+chsh --shell /bin/bash $USER
+```
+
+See also:
+
+- [3 Ways to Change a Users Default Shell in Linux](https://www.tecmint.com/change-a-users-default-shell-in-linux/)
+- [What is the difference between double and single square brackets in bash?](https://serverfault.com/questions/52034/what-is-the-difference-between-double-and-single-square-brackets-in-bash)

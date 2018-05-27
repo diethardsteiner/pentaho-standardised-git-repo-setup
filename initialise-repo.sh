@@ -62,7 +62,7 @@ while getopts ":a:g:p:e:s:w:" opt; do
         echo "Submitted PSGRS_ACTION value: ${PSGRS_ACTION}"
     ;;
     g) export PSGRS_PROJECT_GROUP_NAME="$OPTARG"
-        echo "Submitted project name value: ${PSGRS_PROJECT_GROUP_NAME}"
+        echo "Submitted group name value: ${PSGRS_PROJECT_GROUP_NAME}"
         if [[ ! ${PSGRS_PROJECT_GROUP_NAME} =~ ^[a-z\-]{3,40}$ ]]; then
           echo "Unsupported group name!"
           echo "Lower case, only letters and dashes allowed, no underscores etc."
@@ -94,7 +94,7 @@ while getopts ":a:g:p:e:s:w:" opt; do
         # validate() { echo "files file-repo ee-repo" | grep -F -q -w "${PSGRS_PDI_STORAGE_TYPE}"; }
         LIST_CHECK=$(echo "file-based file-repo ee-repo" | grep -F -q -w "${PSGRS_PDI_STORAGE_TYPE}" && echo "valid" || echo "invalid")
         echo "List check: ${LIST_CHECK}"
-        if [ ${LIST_CHECK} = "invalid" ]; then
+        if [[ ${LIST_CHECK} = "invalid" ]]; then
           echo "Unsupported storage type!"
           echo "Possible values: file-based, file-repo, ee-repo"
           exit 1
