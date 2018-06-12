@@ -99,7 +99,7 @@ $ initialise-repo.sh
 Creating a new **project** called `myproject` with **common artefacts** for the `dev` **environment** using a PDI file-based **storage approach** 
 
 ```bash
-$ sh <path-to-script-folder>/initialise-repo.sh -a 1 -g myproject -p mpr -e dev -s file-based
+$ <path-to-script-folder>/initialise-repo.sh -a 1 -g myproject -p mpr -e dev -s file-based
 ```
 
 This will create a folder called `myproject` in the current directory, which will hold all the other git repositories.
@@ -276,3 +276,5 @@ See also:
 
 - [3 Ways to Change a Users Default Shell in Linux](https://www.tecmint.com/change-a-users-default-shell-in-linux/)
 - [What is the difference between double and single square brackets in bash?](https://serverfault.com/questions/52034/what-is-the-difference-between-double-and-single-square-brackets-in-bash)
+
+On Xubuntu we also got the above error. The solution was to not run `sh initialise-repo.sh` but only `./initialise-repo.sh`.

@@ -5,6 +5,17 @@
 ##                      ______________________                        ##
 
 
+## DEBUG OPTIONS - START
+# stops on first line of undefined var
+# -u
+# stops on first warning
+# -e
+# spits out interpreted script
+# -x 
+## DEBUG OPTIONS - END
+
+
+
 if [ $# -eq 0 ] || [ -z "$1" ]
   then
     echo "ERROR: Not all mandatory arguments supplied, please supply environment and/or job arguments"
@@ -56,6 +67,7 @@ if [ $# -eq 0 ] || [ -z "$1" ]
     exit 1
 fi
 
+
 while getopts ":a:g:p:e:s:w:" opt; do
   case $opt in
     a) PSGRS_ACTION="$OPTARG"
@@ -63,7 +75,7 @@ while getopts ":a:g:p:e:s:w:" opt; do
     ;;
     g) export PSGRS_PROJECT_GROUP_NAME="$OPTARG"
         echo "Submitted group name value: ${PSGRS_PROJECT_GROUP_NAME}"
-        if [[ ! ${PSGRS_PROJECT_GROUP_NAME} =~ ^[a-z\-]{3,40}$ ]]; then
+        if [[ ! "${PSGRS_PROJECT_GROUP_NAME}" =~ ^[a-z\-]{3,40}$ ]]; then
           echo "Unsupported group name!"
           echo "Lower case, only letters and dashes allowed, no underscores etc."
           echo "Minimum of 3 to a maximum of 40 characters."
@@ -72,7 +84,7 @@ while getopts ":a:g:p:e:s:w:" opt; do
     ;;
     p) export PSGRS_PROJECT_NAME="$OPTARG"
         echo "Submitted project name value: ${PSGRS_PROJECT_NAME}"
-        if [[ ! ${PSGRS_PROJECT_NAME} =~ ^[a-z]{3,20}$ ]]; then
+        if [[ ! "${PSGRS_PROJECT_NAME}" =~ ^[a-z]{3,20}$ ]]; then
           echo "Unsupported project name!"
           echo "Lower case, only letters allowed, no underscores, dashes, spaces etc."
           echo "Minimum of 3 to a maximum of 20 characters."
@@ -81,7 +93,7 @@ while getopts ":a:g:p:e:s:w:" opt; do
     ;;
     e) export PSGRS_ENV="$OPTARG"
         echo "Submitted environment value: ${PSGRS_ENV}" 
-        if [[ ! ${PSGRS_ENV} =~ ^[a-z]{3,10}$ ]]; then
+        if [[ ! "${PSGRS_ENV}" =~ ^[a-z]{3,10}$ ]]; then
           echo "Unsupported environment name!"
           echo "Lower case, only letters allowed, no underscores, dashes, spaces etc."
           echo "Minimum of 3 to a maximum of 10 letters."
@@ -94,7 +106,7 @@ while getopts ":a:g:p:e:s:w:" opt; do
         # validate() { echo "files file-repo ee-repo" | grep -F -q -w "${PSGRS_PDI_STORAGE_TYPE}"; }
         LIST_CHECK=$(echo "file-based file-repo ee-repo" | grep -F -q -w "${PSGRS_PDI_STORAGE_TYPE}" && echo "valid" || echo "invalid")
         echo "List check: ${LIST_CHECK}"
-        if [[ ${LIST_CHECK} = "invalid" ]]; then
+        if [[ "${LIST_CHECK}" = "invalid" ]]; then
           echo "Unsupported storage type!"
           echo "Possible values: file-based, file-repo, ee-repo"
           exit 1
